@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portail - Book | Carrefour Proximité</title>
-  <!-- SDK Supabase & Libs JS (Barcode + Excel Parser) -->
+  <!-- SDK Supabase & Libs JS (Barcode + PDF.js) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
   <style>
     :root {
@@ -37,7 +37,6 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     header h1 { font-size: 1.4rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-    
     .admin-btn {
       background: rgba(255,255,255,0.15);
       color: white;
@@ -52,49 +51,19 @@
 
     .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; flex: 1; width: 100%; }
 
-    /* FIL D'ARIANE / NAVIGATION */
-    .breadcrumb {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      font-size: 0.95rem;
-      color: var(--text-muted);
-    }
-    .breadcrumb span.active { font-weight: 700; color: var(--primary-color); }
-    .breadcrumb-btn { background: none; border: none; color: var(--accent-color); cursor: pointer; text-decoration: underline; }
-
-    /* CARTES SECTEURS & FORMATS */
-    .step-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-top: 1rem;
-    }
-
-    .step-card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      border: 1px solid var(--border-color);
-      padding: 2rem;
-      text-align: center;
-      cursor: pointer;
-      box-shadow: var(--shadow);
-      transition: all 0.2s;
-    }
-    .step-card:hover { transform: translateY(-4px); border-color: var(--primary-color); }
-    .step-card h3 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 0.5rem; }
-
-    /* FILTRES & CATALGOUE */
+    /* FILTRES */
     .filter-card {
       background: var(--card-bg);
       padding: 1.5rem;
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
     }
     .filter-row { display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; }
-    .filter-group { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; min-width: 220px; }
+    .filter-group { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; min-width: 200px; }
     .filter-group label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
     select, input[type="text"] {
       padding: 10px 14px;
@@ -104,14 +73,16 @@
       font-size: 0.95rem;
     }
 
-    .checkbox-group { display: flex; gap: 1.5rem; align-items: center; height: 42px; }
+    /* FILTRES CASES A COCHER */
+    .checkbox-group { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
     .checkbox-label {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.95rem;
+      gap: 6px;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
+      user-select: none;
     }
     .checkbox-label input { width: 18px; height: 18px; accent-color: var(--primary-color); cursor: pointer; }
 
@@ -132,7 +103,9 @@
       align-items: center;
       box-shadow: var(--shadow);
       position: relative;
+      transition: transform 0.2s;
     }
+    .product-card:hover { transform: translateY(-3px); }
 
     .brand-badge {
       position: absolute;
@@ -148,10 +121,12 @@
     .badge-mn { background-color: #E63946; }
 
     .product-image {
-      width: 130px;
-      height: 130px;
+      width: 140px;
+      height: 140px;
       object-fit: contain;
       margin-bottom: 1rem;
+      border-radius: 6px;
+      background: #fafafa;
     }
 
     .product-title {
@@ -159,14 +134,8 @@
       font-size: 0.95rem;
       text-align: center;
       color: var(--text-main);
-      margin-bottom: 0.3rem;
-    }
-
-    .product-desc {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      text-align: center;
-      margin-bottom: 0.6rem;
+      margin-bottom: 0.4rem;
+      line-height: 1.3;
     }
 
     .product-details {
@@ -205,9 +174,7 @@
       padding: 2rem;
       border-radius: var(--radius);
       width: 100%;
-      max-width: 600px;
-      max-height: 90vh;
-      overflow-y: auto;
+      max-width: 500px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     }
     .btn {
@@ -220,8 +187,7 @@
       font-weight: 600;
     }
     .btn-danger { background: var(--danger-color); }
-    .form-group { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
-    .form-group label { font-size: 0.85rem; font-weight: 600; }
+    .form-group { margin-bottom: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem; }
   </style>
 </head>
 <body>
@@ -232,75 +198,45 @@
   </header>
 
   <div class="container">
-    <!-- FIL D'ARIANE -->
-    <div class="breadcrumb" id="breadcrumb"></div>
-
-    <!-- VUE 1 : CHOIX DU SECTEUR -->
-    <div id="stepSector" class="step-container">
-      <h2>1. Choisissez votre Région / Secteur</h2>
-      <div class="step-grid">
-        <div class="step-card" onclick="selectSector('NORD')">
-          <h3>St-Vulbas, Bagé, Mâcon (Nord)</h3>
-          <p>Secteur Nord</p>
+    <!-- FILTRES -->
+    <div class="filter-card">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>Recherche Produit</label>
+          <input type="text" id="searchInput" placeholder="Rechercher par libellé ou EAN..." oninput="renderProducts()">
         </div>
-        <div class="step-card" onclick="selectSector('SALON')">
-          <h3>Salon de Provence (Sud)</h3>
-          <p>Secteur Sud</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- VUE 2 : CHOIX DU FORMAT -->
-    <div id="stepFormat" class="step-container" style="display:none;">
-      <h2>2. Choisissez votre Format Magasin</h2>
-      <div class="step-grid">
-        <div class="step-card" onclick="selectFormat('63')">
-          <h3>Format 63</h3>
-          <p>Rural</p>
-        </div>
-        <div class="step-card" onclick="selectFormat('70')">
-          <h3>Format 70</h3>
-          <p>Urbain</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- VUE 3 : CHOIX DU BOOK -->
-    <div id="stepBooks" class="step-container" style="display:none;">
-      <h2>3. Sélectionnez un Book</h2>
-      <div id="booksGrid" class="step-grid"></div>
-    </div>
-
-    <!-- VUE 4 : CATALOGUE PRODUITS -->
-    <div id="stepProducts" class="step-container" style="display:none;">
-      <div class="filter-card">
-        <div class="filter-row">
-          <div class="filter-group">
-            <label>Recherche Produit</label>
-            <input type="text" id="searchInput" placeholder="Rechercher par libellé ou EAN..." oninput="renderProducts()">
+        <div class="filter-group">
+          <label>Marque</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" id="checkMDD" checked onchange="renderProducts()"> MDD</label>
+            <label class="checkbox-label"><input type="checkbox" id="checkMN" checked onchange="renderProducts()"> MN</label>
           </div>
-          <div class="filter-group">
-            <label>Type de Marque</label>
-            <div class="checkbox-group">
-              <label class="checkbox-label">
-                <input type="checkbox" id="checkMDD" checked onchange="renderProducts()"> MDD
-              </label>
-              <label class="checkbox-label">
-                <input type="checkbox" id="checkMN" checked onchange="renderProducts()"> MN
-              </label>
-            </div>
+        </div>
+        <div class="filter-group">
+          <label>Assortiment</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" id="checkA" checked onchange="renderProducts()"> A</label>
+            <label class="checkbox-label"><input type="checkbox" id="checkB" checked onchange="renderProducts()"> B</label>
+            <label class="checkbox-label"><input type="checkbox" id="checkC" checked onchange="renderProducts()"> C</label>
+            <label class="checkbox-label"><input type="checkbox" id="checkD" checked onchange="renderProducts()"> D</label>
           </div>
         </div>
       </div>
-
-      <div id="productsGrid" class="products-grid"></div>
     </div>
+
+    <!-- GRILLE PRODUITS -->
+    <div id="productsGrid" class="products-grid"></div>
   </div>
 
   <!-- MODAL ADMIN -->
   <div id="adminModal" class="modal">
-    <div class="modal-content" id="adminContent">
-      <!-- LE CONTENU SE CHARGE EN DYNAMIQUE (LOGIN OU FORMULAIRE) -->
+    <div class="modal-content" id="adminModalContent">
+      <h2 style="margin-bottom: 1rem;">Connexion Admin</h2>
+      <input type="password" id="adminPassword" placeholder="Mot de passe" style="width: 100%; margin-bottom: 1rem;">
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn btn-danger" onclick="closeAdminModal()">Annuler</button>
+        <button class="btn" onclick="loginAdmin()">Valider</button>
+      </div>
     </div>
   </div>
 
@@ -310,111 +246,54 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtZ3djYnhiY2JjeGNvcmN2d3J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5MzcyMjQsImV4cCI6MjEwNjUxMzIyNH0.0KrLxbTISzxpf0LngVWYw1vpaAlxdZBkrx099U3Saj0';
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  // Configuration de PDF.js
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
   let state = {
-    sector: null,
-    format: null,
-    book: null,
-    isAdmin: false,
-    books: [],
-    parsedProducts: []
+    products: [
+      { id: '1', title: 'Jus d\'Orange Pur Jus 1L', description: 'Jus d\'orange avec pulpe', brandType: 'MDD', pcb: 6, assortment: 'A', ean: '3245390028321', image: '' },
+      { id: '2', title: 'Café Moulu Pur Arabica 250g', description: 'Torréfaction traditionnelle', brandType: 'MN', pcb: 12, assortment: 'B', ean: '3245390028314', image: '' },
+      { id: '3', title: 'Biscuits Chocolat au Lait 200g', description: 'Biscuits croustillants', brandType: 'MDD', pcb: 10, assortment: 'C', ean: '3560071252793', image: '' }
+    ]
   };
-
-  const LABELS = {
-    NORD: "St-Vulbas, Bagé, Mâcon (Nord)",
-    SALON: "Salon de Provence (Sud)",
-    '63': "Format 63 - Rural",
-    '70': "Format 70 - Urbain"
-  };
-
-  // NAVIGATION
-  function updateBreadcrumb() {
-    const bc = document.getElementById('breadcrumb');
-    let html = `<button class="breadcrumb-btn" onclick="resetToStep(1)">Accueil</button>`;
-    if (state.sector) html += ` > <button class="breadcrumb-btn" onclick="resetToStep(2)">${LABELS[state.sector]}</button>`;
-    if (state.format) html += ` > <button class="breadcrumb-btn" onclick="resetToStep(3)">${LABELS[state.format]}</button>`;
-    if (state.book) html += ` > <span class="active">${state.book.title}</span>`;
-    bc.innerHTML = html;
-  }
-
-  function resetToStep(step) {
-    if (step === 1) { state.sector = null; state.format = null; state.book = null; }
-    if (step === 2) { state.format = null; state.book = null; }
-    if (step === 3) { state.book = null; }
-    
-    document.getElementById('stepSector').style.display = step === 1 ? 'block' : 'none';
-    document.getElementById('stepFormat').style.display = step === 2 ? 'block' : 'none';
-    document.getElementById('stepBooks').style.display = step === 3 ? 'block' : 'none';
-    document.getElementById('stepProducts').style.display = step === 4 ? 'block' : 'none';
-
-    updateBreadcrumb();
-    if (step === 3) loadBooks();
-  }
-
-  function selectSector(sec) { state.sector = sec; resetToStep(2); }
-  function selectFormat(fmt) { state.format = fmt; resetToStep(3); }
-
-  async function loadBooks() {
-    const grid = document.getElementById('booksGrid');
-    grid.innerHTML = '<p>Chargement des books...</p>';
-    
-    const { data, error } = await supabaseClient.from('books').select('*');
-    if (error) {
-      grid.innerHTML = '<p style="color:red">Erreur de chargement des books.</p>';
-      return;
-    }
-
-    state.books = data || [];
-    const filtered = state.books.filter(b => 
-      (!b.sectors || b.sectors.includes(state.sector)) && 
-      (!b.formats || b.formats.includes(state.format))
-    );
-
-    grid.innerHTML = '';
-    if (filtered.length === 0) {
-      grid.innerHTML = '<p>Aucun book disponible pour ces critères.</p>';
-      return;
-    }
-
-    filtered.forEach(b => {
-      const card = document.createElement('div');
-      card.className = 'step-card';
-      card.onclick = () => openBook(b);
-      card.innerHTML = `<h3>${b.title}</h3><p>${b.description || ''}</p>`;
-      grid.appendChild(card);
-    });
-  }
-
-  function openBook(b) {
-    state.book = b;
-    resetToStep(4);
-    renderProducts();
-  }
 
   function renderProducts() {
-    if (!state.book) return;
     const search = document.getElementById('searchInput').value.toLowerCase();
+    
     const showMDD = document.getElementById('checkMDD').checked;
     const showMN = document.getElementById('checkMN').checked;
+
+    const showA = document.getElementById('checkA').checked;
+    const showB = document.getElementById('checkB').checked;
+    const showC = document.getElementById('checkC').checked;
+    const showD = document.getElementById('checkD').checked;
+
     const grid = document.getElementById('productsGrid');
-
     grid.innerHTML = '';
-    const products = state.book.products || [];
 
-    const filtered = products.filter(p => {
-      const matchSearch = (p.title && p.title.toLowerCase().includes(search)) || 
-                          (p.ean && p.ean.includes(search)) || 
+    const filtered = state.products.filter(p => {
+      const matchSearch = p.title.toLowerCase().includes(search) || 
+                          p.ean.includes(search) || 
                           (p.description && p.description.toLowerCase().includes(search));
-      const brand = p.brandType || 'MDD';
+      
+      const brand = p.brandType ? p.brandType.toUpperCase() : 'MDD';
       const matchBrand = (brand === 'MDD' && showMDD) || (brand === 'MN' && showMN);
-      return matchSearch && matchBrand;
+
+      const assort = p.assortment ? p.assortment.toUpperCase() : 'A';
+      const matchAssort = (assort === 'A' && showA) || 
+                          (assort === 'B' && showB) || 
+                          (assort === 'C' && showC) || 
+                          (assort === 'D' && showD);
+
+      return matchSearch && matchBrand && matchAssort;
     });
 
     if (filtered.length === 0) {
-      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">Aucun produit trouvé.</p>';
+      grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 2rem;">Aucun produit ne correspond à votre recherche.</p>';
       return;
     }
 
-    filtered.forEach((product, idx) => {
+    filtered.forEach(product => {
       const card = document.createElement('div');
       card.className = 'product-card';
 
@@ -422,165 +301,124 @@
         ? product.image 
         : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%23cccccc" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="21 15l-5-5L5 21"/></svg>';
 
+      const badgeClass = product.brandType === 'MN' ? 'badge-mn' : 'badge-mdd';
       const brandText = product.brandType || 'MDD';
-      const badgeClass = brandText === 'MN' ? 'badge-mn' : 'badge-mdd';
 
       card.innerHTML = `
         <span class="brand-badge ${badgeClass}">${brandText}</span>
-        <img class="product-image" src="${imgUrl}" alt="${product.title || 'Produit'}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;100&quot; height=&quot;100&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%23cccccc&quot; stroke-width=&quot;2&quot;><rect x=&quot;3&quot; y=&quot;3&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot;/><circle cx=&quot;8.5&quot; cy=&quot;8.5&quot; r=&quot;1.5&quot;/><path d=&quot;21 15l-5-5L5 21&quot;/></svg>'">
-        <h3 class="product-title">${product.title || 'Produit sans nom'}</h3>
-        ${product.description ? `<p class="product-desc">${product.description}</p>` : ''}
+        <img class="product-image" src="${imgUrl}" alt="${product.title}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;100&quot; height=&quot;100&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;%23cccccc&quot; stroke-width=&quot;2&quot;><rect x=&quot;3&quot; y=&quot;3&quot; width=&quot;18&quot; height=&quot;18&quot; rx=&quot;2&quot;/><circle cx=&quot;8.5&quot; cy=&quot;8.5&quot; r=&quot;1.5&quot;/><path d=&quot;21 15l-5-5L5 21&quot;/></svg>'">
+        <h3 class="product-title">${product.title}</h3>
+        ${product.description ? `<p style="font-size:0.8rem; color:var(--text-muted); text-align:center; margin-bottom:0.5rem;">${product.description}</p>` : ''}
         <div class="product-details">
           <div>PCB: <span>${product.pcb || 1}</span></div>
         </div>
         <div class="assortment-badge">Assortiment : ${product.assortment || 'A'}</div>
-        <svg class="barcode-svg" id="barcode-${idx}"></svg>
+        <svg class="barcode-svg" id="barcode-${product.id}"></svg>
       `;
 
       grid.appendChild(card);
 
       if (product.ean) {
         try {
-          JsBarcode(`#barcode-${idx}`, product.ean, { format: "EAN13", height: 40, fontSize: 12, margin: 0 });
+          JsBarcode(`#barcode-${product.id}`, product.ean, { format: "EAN13", height: 40, fontSize: 12, margin: 0 });
         } catch (e) {
-          JsBarcode(`#barcode-${idx}`, product.ean, { format: "CODE128", height: 40, fontSize: 12, margin: 0 });
+          JsBarcode(`#barcode-${product.id}`, product.ean, { format: "CODE128", height: 40, fontSize: 12, margin: 0 });
         }
       }
     });
   }
 
-  // LOGIQUE ADMIN
-  function openAdminModal() {
-    const modal = document.getElementById('adminModal');
-    const content = document.getElementById('adminContent');
-    modal.style.display = 'flex';
+  // PARSER DE PDF (ADMIN)
+  async function handlePdfUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-    if (!state.isAdmin) {
-      content.innerHTML = `
-        <h2>Connexion Admin</h2>
-        <div class="form-group" style="margin-top:1rem;">
-          <input type="password" id="adminPassword" placeholder="Mot de passe admin">
-        </div>
-        <div style="display:flex; justify-content:flex-end; gap:10px;">
-          <button class="btn btn-danger" onclick="closeAdminModal()">Annuler</button>
-          <button class="btn" onclick="loginAdmin()">Connexion</button>
-        </div>
-      `;
-    } else {
-      renderAdminForm();
+    const statusDiv = document.getElementById('pdfStatus');
+    statusDiv.innerText = "⏳ Lecture et extraction du PDF en cours...";
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+    let extractedProducts = [];
+
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      
+      // Conversion de la page PDF en image haute résolution
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+      const pageImageUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+      // Extraction du texte de la page
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map(item => item.str).join(' ');
+
+      // Extraction des codes EAN-13 présents dans la page
+      const eanMatches = pageText.match(/\b3\d{12}\b/g) || [];
+
+      if (eanMatches.length > 0) {
+        eanMatches.forEach((ean, idx) => {
+          extractedProducts.push({
+            id: `pdf-${pageNum}-${idx}`,
+            title: `Produit EAN ${ean}`,
+            description: `Extrait de la page ${pageNum} du PDF`,
+            brandType: pageText.includes('MN') ? 'MN' : 'MDD',
+            pcb: 6,
+            assortment: 'A',
+            ean: ean,
+            image: pageImageUrl
+          });
+        });
+      } else {
+        // Fallback si pas de code EAN direct
+        extractedProducts.push({
+          id: `pdf-page-${pageNum}`,
+          title: `Fiche Produit (Page ${pageNum})`,
+          description: pageText.substring(0, 60) + '...',
+          brandType: 'MDD',
+          pcb: 1,
+          assortment: 'A',
+          ean: '3245390028321',
+          image: pageImageUrl
+        });
+      }
     }
+
+    state.products = extractedProducts;
+    renderProducts();
+    statusDiv.innerText = `✅ ${extractedProducts.length} visuels/produits extraits du PDF avec succès !`;
   }
 
+  function openAdminModal() { document.getElementById('adminModal').style.display = 'flex'; }
   function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
 
   function loginAdmin() {
     const pass = document.getElementById('adminPassword').value;
     if (pass === 'CMPGC') {
-      state.isAdmin = true;
-      renderAdminForm();
+      const content = document.getElementById('adminModalContent');
+      content.innerHTML = `
+        <h2>Mode Administration</h2>
+        <div class="form-group" style="margin-top: 1rem;">
+          <label style="font-weight:600; font-size:0.9rem;">Importer un catalogue PDF avec images</label>
+          <input type="file" id="pdfFileInput" accept="application/pdf" onchange="handlePdfUpload(event)">
+        </div>
+        <div id="pdfStatus" style="font-size: 0.85rem; color: var(--accent-color); margin-bottom: 1rem;"></div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn btn-danger" onclick="closeAdminModal()">Fermer</button>
+        </div>
+      `;
     } else {
       alert('Mot de passe incorrect.');
     }
   }
 
-  function renderAdminForm() {
-    const content = document.getElementById('adminContent');
-    content.innerHTML = `
-      <h2>Créer un Nouveau Book</h2>
-      <div class="form-group" style="margin-top:1rem;">
-        <label>Titre du Book</label>
-        <input type="text" id="bookTitle" placeholder="Ex: Catalogue Frais - Printemps">
-      </div>
-      <div class="form-group">
-        <label>Description</label>
-        <input type="text" id="bookDesc" placeholder="Ex: Offre valable pour Avril">
-      </div>
-      <div class="form-group">
-        <label>Secteurs Cibles</label>
-        <div style="display:flex; gap:1rem;">
-          <label><input type="checkbox" id="secNord" checked> Nord</label>
-          <label><input type="checkbox" id="secSalon" checked> Salon (Sud)</label>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Formats Cibles</label>
-        <div style="display:flex; gap:1rem;">
-          <label><input type="checkbox" id="fmt63" checked> Format 63</label>
-          <label><input type="checkbox" id="fmt70" checked> Format 70</label>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Importer le Cadencier Excel (.xlsx)</label>
-        <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="parseExcel(event)">
-      </div>
-      <div id="parseStatus" style="font-size:0.85rem; color:var(--accent-color); margin-bottom:1rem;"></div>
-      <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button class="btn btn-danger" onclick="closeAdminModal()">Fermer</button>
-        <button class="btn" onclick="saveBook()">Enregistrer le Book</button>
-      </div>
-    `;
-  }
-
-  function parseExcel(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      const data = new Uint8Array(evt.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-      state.parsedProducts = json.map(row => ({
-        title: row['Libellé'] || row['Title'] || row['Nom'] || 'Produit',
-        description: row['Description'] || '',
-        ean: String(row['EAN'] || row['Code EAN'] || '').trim(),
-        pcb: row['PCB'] || row['Colisage'] || 1,
-        assortment: row['Assortiment'] || row['Assort'] || 'A',
-        brandType: String(row['Marque'] || row['Type'] || '').toUpperCase().includes('MN') ? 'MN' : 'MDD',
-        image: row['Image'] || row['Photo'] || ''
-      }));
-
-      document.getElementById('parseStatus').innerText = `✅ ${state.parsedProducts.length} produits détectés dans le fichier !`;
-    };
-    reader.readAsArrayBuffer(file);
-  }
-
-  async function saveBook() {
-    const title = document.getElementById('bookTitle').value;
-    const description = document.getElementById('bookDesc').value;
-    
-    if (!title) { alert('Veuillez entrer un titre.'); return; }
-
-    const sectors = [];
-    if (document.getElementById('secNord').checked) sectors.push('NORD');
-    if (document.getElementById('secSalon').checked) sectors.push('SALON');
-
-    const formats = [];
-    if (document.getElementById('fmt63').checked) formats.push('63');
-    if (document.getElementById('fmt70').checked) formats.push('70');
-
-    const { error } = await supabaseClient.from('books').insert([{
-      title,
-      description,
-      sectors,
-      formats,
-      products: state.parsedProducts
-    }]);
-
-    if (error) {
-      alert('Erreur lors de la sauvegarde : ' + error.message);
-    } else {
-      alert('Book créé avec succès !');
-      closeAdminModal();
-      if (state.sector && state.format) loadBooks();
-    }
-  }
-
-  // INITIALISATION
   document.addEventListener('DOMContentLoaded', () => {
-    resetToStep(1);
+    renderProducts();
   });
 </script>
 </body>
