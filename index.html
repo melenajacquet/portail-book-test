@@ -47,31 +47,66 @@
     .breadcrumb-link { color: var(--primary-color); text-decoration: none; cursor: pointer; font-weight: 600; }
     .breadcrumb-link:hover { text-decoration: underline; }
     .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-    .search-container { margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; background: var(--card-bg); padding: 1.2rem; border-radius: 8px; border: 1px solid var(--border-color); }
+    .search-container { margin-bottom: 1.5rem; display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center; background: var(--card-bg); padding: 1.2rem; border-radius: 8px; border: 1px solid var(--border-color); }
     .search-input { flex: 2; min-width: 240px; padding: 10px 14px; font-size: 0.95rem; border: 1px solid var(--border-color); border-radius: 8px; outline: none; }
     .search-input:focus { border-color: var(--primary-color); }
     
-    .filter-group { display: flex; align-items: center; gap: 8px; }
+    .filter-group { display: flex; align-items: center; gap: 8px; position: relative; }
     .filter-group label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
 
-    .checkbox-group-inline { display: flex; gap: 6px; align-items: center; }
-    .assort-badge-btn {
+    /* MENU DÉROULANT ASSORTIMENT */
+    .dropdown-assort { position: relative; display: inline-block; }
+    .dropdown-btn {
+      background-color: white;
       border: 1px solid var(--border-color);
-      background: #F1F3F5;
-      padding: 6px 12px;
       border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 700;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
       cursor: pointer;
-      user-select: none;
-      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 180px;
     }
-    .assort-badge-btn.active {
-      background: var(--primary-color);
-      color: white;
-      border-color: var(--primary-color);
+    .dropdown-btn:hover { border-color: var(--primary-color); }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      margin-top: 4px;
+      background-color: white;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      z-index: 100;
+      min-width: 240px;
+      overflow: hidden;
+    }
+    .dropdown-menu.show { display: block; }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .dropdown-item:hover { background-color: #F0F4F8; }
+    .dropdown-item.highlight { background-color: #E3EFFB; color: #1967D2; font-weight: 600; }
+    .dropdown-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary-color);
+      cursor: pointer;
     }
 
+    .checkbox-group-inline { display: flex; gap: 10px; align-items: center; }
     .checkbox-label-inline { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
     .checkbox-label-inline input { accent-color: var(--primary-color); width: 16px; height: 16px; cursor: pointer; }
 
@@ -92,7 +127,8 @@
     .drive-link:hover { background: var(--primary-hover); }
     
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.25rem; margin-top: 1.5rem; }
-    .product-card { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; box-shadow: var(--shadow); position: relative; }
+    .product-card { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; box-shadow: var(--shadow); position: relative; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .product-card:hover { transform: scale(1.02); box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
     
     .brand-badge { position: absolute; top: 10px; left: 10px; padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; color: white; z-index: 2; }
     .badge-mdd { background-color: var(--accent-color); }
@@ -112,6 +148,15 @@
     
     .delete-product-btn { display: none; position: absolute; top: 8px; right: 8px; background: var(--danger-color); color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 0.85rem; line-height: 26px; z-index: 5; text-align: center; }
     .admin-mode .delete-product-btn { display: block; }
+
+    /* MODALE DE ZOOM PRODUIT (SCAN MOBILE) */
+    .zoom-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; padding: 1.5rem; }
+    .zoom-modal.active { display: flex; }
+    .zoom-card { background: white; border-radius: 16px; padding: 1.5rem; max-width: 450px; width: 100%; text-align: center; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
+    .zoom-close { position: absolute; top: 12px; right: 12px; background: #eee; border: none; border-radius: 50%; width: 32px; height: 32px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
+    .zoom-img { width: 100%; height: 220px; object-fit: contain; border-radius: 8px; margin-bottom: 12px; background: #fff; }
+    .zoom-title { font-size: 1.1rem; font-weight: bold; color: var(--text-main); margin-bottom: 10px; }
+    .zoom-barcode-svg { width: 100%; height: 90px; margin-top: 10px; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
     .modal-overlay.active { display: flex; }
@@ -145,7 +190,7 @@
 
     @media print {
       @page { size: A4 portrait; margin: 8mm; }
-      header, .breadcrumb, .results-header, .search-container, .admin-toggle, .no-print, .delete-product-btn { display: none !important; }
+      header, .breadcrumb, .results-header, .search-container, .admin-toggle, .no-print, .delete-product-btn, .zoom-modal { display: none !important; }
       body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       main { max-width: 100%; padding: 0; margin: 0; }
       
@@ -176,6 +221,7 @@
         padding: 6px !important;
         page-break-inside: avoid;
         break-inside: avoid;
+        transform: none !important;
       }
       .product-img { height: 90px !important; margin-top: 4px !important; margin-bottom: 4px !important; }
       .product-title { font-size: 0.75rem !important; height: 2.4em !important; margin-bottom: 3px !important; line-height: 1.1 !important; }
@@ -279,14 +325,39 @@
           </div>
         </div>
 
-        <!-- SÉLECTION MULTIPLE DES ASSORTIMENTS -->
         <div class="filter-group">
-          <label>Assortiments :</label>
-          <div class="checkbox-group-inline">
-            <div class="assort-badge-btn active" data-value="A" onclick="toggleAssortFilter(this)">A</div>
-            <div class="assort-badge-btn active" data-value="B" onclick="toggleAssortFilter(this)">B</div>
-            <div class="assort-badge-btn active" data-value="C" onclick="toggleAssortFilter(this)">C</div>
-            <div class="assort-badge-btn active" data-value="D" onclick="toggleAssortFilter(this)">D</div>
+          <label>Assortiment</label>
+          <div class="dropdown-assort">
+            <button type="button" class="dropdown-btn" id="assortDropdownBtn" onclick="toggleAssortDropdown(event)">
+              <span id="assortBtnLabel">Tous les assortiments</span>
+              <span id="assortBtnArrow">▼</span>
+            </button>
+            <div class="dropdown-menu" id="assortDropdownMenu">
+              <label class="dropdown-item highlight">
+                <input type="checkbox" id="assort_NONE" value="NONE" checked onchange="onAssortCheckboxChange()">
+                <span>Sans niveau d'assortiment</span>
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" id="assort_A" value="A" checked onchange="onAssortCheckboxChange()">
+                <span>A</span>
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" id="assort_B" value="B" checked onchange="onAssortCheckboxChange()">
+                <span>B</span>
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" id="assort_C" value="C" checked onchange="onAssortCheckboxChange()">
+                <span>C</span>
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" id="assort_D" value="D" checked onchange="onAssortCheckboxChange()">
+                <span>D</span>
+              </label>
+              <label class="dropdown-item">
+                <input type="checkbox" id="assort_E" value="E" checked onchange="onAssortCheckboxChange()">
+                <span>E</span>
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -294,6 +365,17 @@
       <div id="productsContainer" class="product-grid"></div>
     </section>
   </main>
+
+  <!-- MODALE ZOOM PRODUIT POUR SCAN MOBILE -->
+  <div class="zoom-modal" id="zoomModal" onclick="closeZoomModal()">
+    <div class="zoom-card" onclick="event.stopPropagation()">
+      <button class="zoom-close" onclick="closeZoomModal()">✕</button>
+      <img id="zoomImg" src="" class="zoom-img" alt="Zoom Produit">
+      <div id="zoomTitle" class="zoom-title"></div>
+      <div id="zoomDetails" class="product-details" style="font-size: 0.95rem; margin-bottom: 10px;"></div>
+      <svg id="zoomBarcode" class="zoom-barcode-svg"></svg>
+    </div>
+  </div>
 
   <!-- MODAL AJOUT / EDIT BOOK (ADMIN) -->
   <div class="modal-overlay" id="bookModal">
@@ -412,10 +494,12 @@
         <div class="form-group">
           <label for="prodAssort">Assortiment</label>
           <select id="prodAssort">
+            <option value="NONE">Sans niveau</option>
             <option value="A">A</option>
             <option value="B">B</option>
             <option value="C">C</option>
             <option value="D">D</option>
+            <option value="E">E</option>
           </select>
         </div>
         <div class="form-group">
@@ -586,21 +670,98 @@
 
       document.getElementById('productSearchInput').value = '';
       
-      // Activer tous les assortiments par défaut
-      document.querySelectorAll('.assort-badge-btn').forEach(btn => btn.classList.add('active'));
+      ['NONE', 'A', 'B', 'C', 'D', 'E'].forEach(val => {
+        const el = document.getElementById(`assort_${val}`);
+        if (el) el.checked = true;
+      });
+      updateAssortBtnLabel();
 
       goToPage(4);
       renderProducts();
     }
 
-    function toggleAssortFilter(btnElement) {
-      btnElement.classList.toggle('active');
+    function toggleAssortDropdown(e) {
+      e.stopPropagation();
+      const menu = document.getElementById('assortDropdownMenu');
+      const arrow = document.getElementById('assortBtnArrow');
+      const isVisible = menu.classList.contains('show');
+      
+      if (isVisible) {
+        menu.classList.remove('show');
+        arrow.textContent = '▼';
+      } else {
+        menu.classList.add('show');
+        arrow.textContent = '▲';
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const dropdown = document.querySelector('.dropdown-assort');
+      if (dropdown && !dropdown.contains(e.target)) {
+        document.getElementById('assortDropdownMenu').classList.remove('show');
+        document.getElementById('assortBtnArrow').textContent = '▼';
+      }
+    });
+
+    function onAssortCheckboxChange() {
+      updateAssortBtnLabel();
       renderProducts();
     }
 
     function getSelectedAssortments() {
-      const activeBtns = document.querySelectorAll('.assort-badge-btn.active');
-      return Array.from(activeBtns).map(btn => btn.getAttribute('data-value'));
+      const selected = [];
+      ['NONE', 'A', 'B', 'C', 'D', 'E'].forEach(val => {
+        const el = document.getElementById(`assort_${val}`);
+        if (el && el.checked) selected.push(val);
+      });
+      return selected;
+    }
+
+    function updateAssortBtnLabel() {
+      const selected = getSelectedAssortments();
+      const labelEl = document.getElementById('assortBtnLabel');
+
+      if (selected.length === 6) {
+        labelEl.textContent = "Tous les assortiments";
+      } else if (selected.length === 0) {
+        labelEl.textContent = "Aucun sélectionné";
+      } else {
+        const labels = selected.map(s => s === 'NONE' ? 'Sans niveau' : s);
+        labelEl.textContent = labels.join(', ');
+      }
+    }
+
+    function openZoomModal(product) {
+      const modal = document.getElementById('zoomModal');
+      const title = product.description || product.label || 'Fiche produit';
+      
+      document.getElementById('zoomImg').src = product.image || 'https://via.placeholder.com/300?text=Photo';
+      document.getElementById('zoomTitle').textContent = title;
+      
+      const iflsText = product.ifls ? ` | IFLS : <span>${product.ifls}</span>` : '';
+      const assortText = (product.assortment && product.assortment !== 'NONE') ? product.assortment : 'Sans niveau';
+
+      document.getElementById('zoomDetails').innerHTML = `
+        <div>PCB : <span>${product.pcb || 1}</span></div>
+        ${iflsText}
+        <div style="margin-left: 10px;">Assortiment : <span>${assortText}</span></div>
+      `;
+
+      if (product.ean) {
+        try {
+          JsBarcode("#zoomBarcode", String(product.ean), { format: "EAN13", height: 75, displayValue: true, fontSize: 16 });
+        } catch(e) {
+          JsBarcode("#zoomBarcode", String(product.ean), { format: "CODE128", height: 75, displayValue: true, fontSize: 16 });
+        }
+      } else {
+        document.getElementById('zoomBarcode').innerHTML = '';
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeZoomModal() {
+      document.getElementById('zoomModal').classList.remove('active');
     }
 
     function renderProducts() {
@@ -626,7 +787,9 @@
         const brand = (p.brandType || p.brand || 'MDD').toUpperCase();
         const matchBrand = (brand === 'MDD' && showMDD) || (brand === 'MN' && showMN);
 
-        const assort = (p.assortment || 'A').toUpperCase();
+        let assort = (p.assortment || 'NONE').toUpperCase().trim();
+        if (!assort || assort === '' || assort === 'SANS NIVEAU' || assort === 'SANS') assort = 'NONE';
+        
         const matchAssort = selectedAssorts.includes(assort);
 
         return matchQuery && matchBrand && matchAssort;
@@ -640,12 +803,20 @@
       products.forEach((p, idx) => {
         const card = document.createElement('div');
         card.className = 'product-card';
+        
+        // Ouvert de la modale zoom lors d'un clic
+        card.onclick = (e) => {
+          if (e.target.classList.contains('delete-product-btn')) return;
+          openZoomModal(p);
+        };
+
         const barcodeId = `barcode-${idx}`;
 
         const brandText = (p.brandType || p.brand || 'MDD').toUpperCase();
         const badgeClass = brandText === 'MN' ? 'badge-mn' : 'badge-mdd';
         const displayTitle = p.description || p.label || `Produit ${p.ean || idx + 1}`;
         const iflsDisplay = p.ifls ? `| IFLS : <span>${p.ifls}</span>` : '';
+        const assortText = (p.assortment && p.assortment !== 'NONE') ? p.assortment : 'Sans niveau';
 
         card.innerHTML = `
           <button class="delete-product-btn" onclick="removeProductFromCurrentBook(${p._originalIndex})" title="Supprimer ce produit">✕</button>
@@ -656,7 +827,7 @@
             <div>PCB : <span>${p.pcb || 1}</span></div>
             ${iflsDisplay}
           </div>
-          <div class="product-badge">Assortiment : ${p.assortment || 'A'}</div>
+          <div class="product-badge">Assortiment : ${assortText}</div>
           <svg id="${barcodeId}" class="barcode-svg"></svg>
         `;
         container.appendChild(card);
@@ -867,13 +1038,16 @@
 
             if (!descriptionText && !ean) continue;
 
+            let assortVal = idxAssort !== -1 && row[idxAssort] ? String(row[idxAssort]).trim().toUpperCase() : 'NONE';
+            if (!assortVal || assortVal === '') assortVal = 'NONE';
+
             extracted.push({
               description: descriptionText,
               label: descriptionText,
               ean: ean,
               ifls: idxIfls !== -1 && row[idxIfls] ? String(row[idxIfls]).trim() : '',
               pcb: idxPcb !== -1 && row[idxPcb] ? row[idxPcb] : 1,
-              assortment: idxAssort !== -1 && row[idxAssort] ? String(row[idxAssort]).trim().toUpperCase() : 'A',
+              assortment: assortVal,
               brandType: idxBrand !== -1 && String(row[idxBrand]).toUpperCase().includes('MN') ? 'MN' : 'MDD',
               image: imageMap[r] || ''
             });
