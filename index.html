@@ -53,10 +53,25 @@
     
     .filter-group { display: flex; align-items: center; gap: 8px; }
     .filter-group label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .filter-select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-weight: 600; outline: none; background: white; cursor: pointer; }
-    .filter-select:focus { border-color: var(--primary-color); }
 
-    .checkbox-group-inline { display: flex; gap: 10px; align-items: center; }
+    .checkbox-group-inline { display: flex; gap: 6px; align-items: center; }
+    .assort-badge-btn {
+      border: 1px solid var(--border-color);
+      background: #F1F3F5;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+    .assort-badge-btn.active {
+      background: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
     .checkbox-label-inline { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
     .checkbox-label-inline input { accent-color: var(--primary-color); width: 16px; height: 16px; cursor: pointer; }
 
@@ -264,16 +279,15 @@
           </div>
         </div>
 
-        <!-- LISTE DÉROULANTE POUR FILTRER L'ASSORTIMENT -->
+        <!-- SÉLECTION MULTIPLE DES ASSORTIMENTS -->
         <div class="filter-group">
-          <label for="filterAssortSelect">Assortiment :</label>
-          <select id="filterAssortSelect" class="filter-select" onchange="renderProducts()">
-            <option value="ALL">Tous</option>
-            <option value="A">Assortiment A</option>
-            <option value="B">Assortiment B</option>
-            <option value="C">Assortiment C</option>
-            <option value="D">Assortiment D</option>
-          </select>
+          <label>Assortiments :</label>
+          <div class="checkbox-group-inline">
+            <div class="assort-badge-btn active" data-value="A" onclick="toggleAssortFilter(this)">A</div>
+            <div class="assort-badge-btn active" data-value="B" onclick="toggleAssortFilter(this)">B</div>
+            <div class="assort-badge-btn active" data-value="C" onclick="toggleAssortFilter(this)">C</div>
+            <div class="assort-badge-btn active" data-value="D" onclick="toggleAssortFilter(this)">D</div>
+          </div>
         </div>
       </div>
 
@@ -571,9 +585,22 @@
       }
 
       document.getElementById('productSearchInput').value = '';
-      document.getElementById('filterAssortSelect').value = 'ALL';
+      
+      // Activer tous les assortiments par défaut
+      document.querySelectorAll('.assort-badge-btn').forEach(btn => btn.classList.add('active'));
+
       goToPage(4);
       renderProducts();
+    }
+
+    function toggleAssortFilter(btnElement) {
+      btnElement.classList.toggle('active');
+      renderProducts();
+    }
+
+    function getSelectedAssortments() {
+      const activeBtns = document.querySelectorAll('.assort-badge-btn.active');
+      return Array.from(activeBtns).map(btn => btn.getAttribute('data-value'));
     }
 
     function renderProducts() {
@@ -585,7 +612,8 @@
       
       const showMDD = document.getElementById('filterMDD').checked;
       const showMN = document.getElementById('filterMN').checked;
-      const selectedAssort = document.getElementById('filterAssortSelect').value;
+      
+      const selectedAssorts = getSelectedAssortments();
 
       const products = state.currentBook.products.filter((p, index) => {
         p._originalIndex = index;
@@ -599,7 +627,7 @@
         const matchBrand = (brand === 'MDD' && showMDD) || (brand === 'MN' && showMN);
 
         const assort = (p.assortment || 'A').toUpperCase();
-        const matchAssort = (selectedAssort === 'ALL') || (assort === selectedAssort);
+        const matchAssort = selectedAssorts.includes(assort);
 
         return matchQuery && matchBrand && matchAssort;
       });
@@ -796,7 +824,6 @@
       return rowImageMap;
     }
 
-    // PARSER EXCEL AVEC DÉTECTION COLONNE IFLS
     document.getElementById('excelFile').addEventListener('change', async function(e) {
       const file = e.target.files[0];
       if (!file) return;
