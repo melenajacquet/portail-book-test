@@ -383,13 +383,19 @@
       filteredBooks.forEach(book => {
         const card = document.createElement('div');
         card.className = 'book-card';
+        
+        // Si c'est un book Drive pur, ouvrir le lien Drive au clic
+        const clickAction = (book.drive_pdf && (!book.products || book.products.length === 0))
+          ? `window.open('${book.drive_pdf}', '_blank')`
+          : `openCatalog('${book.id}')`;
+
         card.innerHTML = `
           ${state.isAdmin ? `<div class="admin-actions"><button class="btn-action" onclick="editBook('${book.id}')">Éditer</button><button class="btn-action delete" onclick="deleteBook('${book.id}')">Supprimer</button></div>` : ''}
           <img src="${formatDriveImageUrl(book.image)}" alt="${book.title}" class="book-cover" onerror="this.src='https://via.placeholder.com/600x400?text=Carrefour+Proximité'">
           <div class="book-content">
             <h3 class="book-title">${book.title}</h3>
             <p class="book-desc">${book.description || 'Catalogue des produits du rayon.'}</p>
-            <button onclick="openCatalog('${book.id}')" class="drive-link">Accéder au book ↗</button>
+            <button onclick="${clickAction}" class="drive-link">Accéder au book ↗</button>
           </div>
         `;
         container.appendChild(card);
@@ -462,6 +468,7 @@
         const brandText = (p.brandType || p.brand || 'MDD').toUpperCase();
         const badgeClass = brandText === 'MN' ? 'badge-mn' : 'badge-mdd';
 
+        // Le titre prend STRICTEMENT la colonne Description
         const displayTitle = p.description || p.label || `Produit ${p.ean || idx + 1}`;
 
         card.innerHTML = `
@@ -503,7 +510,7 @@
       document.getElementById('importStatus').innerText = '';
     }
 
-    // EXTRACTION IMAGES EXCEL
+    // EXTRACTION OPTIMISÉE DES IMAGES EXCEL (COLONNE A / ANCRES)
     async function extractImagesFromExcel(file) {
       const zip = await JSZip.loadAsync(file);
       const rowImageMap = {};
@@ -538,7 +545,8 @@
 
         if (fromRow && blip) {
           const rowIndex = parseInt(fromRow.textContent, 10);
-          const imageName = relMap[blip.getAttribute("r:embed")];
+          const embedId = blip.getAttribute("r:embed") || blip.getAttribute("r:link");
+          const imageName = relMap[embedId];
 
           if (imageName) {
             const imageFile = zip.file(`xl/media/${imageName}`);
@@ -560,7 +568,7 @@
       if (!file) return;
 
       const statusDiv = document.getElementById('importStatus');
-      statusDiv.innerText = "⏳ Analyse du fichier Excel...";
+      statusDiv.innerText = "⏳ Extraction des photos et données...";
 
       try {
         const imageMap = await extractImagesFromExcel(file);
@@ -609,13 +617,13 @@
           }
 
           state.parsedProducts = extracted;
-          statusDiv.innerText = `✅ ${extracted.length} produits extraits du fichier Excel !`;
+          statusDiv.innerText = `✅ ${extracted.length} fiches produits importées avec succès !`;
         };
 
         reader.readAsArrayBuffer(file);
       } catch (err) {
         console.error("Erreur Excel :", err);
-        statusDiv.innerText = "❌ Erreur de lecture Excel.";
+        statusDiv.innerText = "❌ Erreur lors de la lecture du fichier Excel.";
       }
     });
 
@@ -681,8 +689,8 @@
       const id = document.getElementById('bookId').value;
       const title = document.getElementById('bookTitle').value;
       const image = document.getElementById('bookImage').value;
-      const drive_pdf = document.getElementById('bookDrivePdf').value;
       const description = document.getElementById('bookDesc').value;
+      const drive_pdf = document.getElementById('bookDrivePdf').value;
       const sectors = Array.from(document.querySelectorAll('input[name="sector"]:checked')).map(cb => cb.value);
       const formats = Array.from(document.querySelectorAll('input[name="format"]:checked')).map(cb => cb.value);
 
@@ -692,22 +700,42 @@
         return alert("Sélectionnez au moins un secteur et un format."); 
       }
 
-      const payload = { title, image, drive_pdf, description, sectors, formats, products: state.parsedProducts };
+      const payload = { 
+        title, 
+        image, 
+        description, 
+        sectors, 
+        formats, 
+        products: state.parsedProducts 
+      };
 
-      let error = null;
+      // Si le champ Drive est rempli, on tente de l'inclure
+      if (drive_pdf) {
+        payload.drive_pdf = drive_pdf;
+      }
+
+      let res = null;
       if (id) {
-        const res = await supabaseClient.from('books').update(payload).eq('id', id);
-        error = res.error;
+        res = await supabaseClient.from('books').update(payload).eq('id', id);
       } else {
-        const res = await supabaseClient.from('books').insert([payload]);
-        error = res.error;
+        res = await supabaseClient.from('books').insert([payload]);
+      }
+
+      // Si Supabase renvoie une erreur sur la colonne drive_pdf, on reteste sans la colonne
+      if (res.error && res.error.message.includes('drive_pdf')) {
+        delete payload.drive_pdf;
+        if (id) {
+          res = await supabaseClient.from('books').update(payload).eq('id', id);
+        } else {
+          res = await supabaseClient.from('books').insert([payload]);
+        }
       }
 
       submitBtn.disabled = false;
       submitBtn.textContent = "Enregistrer";
 
-      if (error) {
-        alert("Erreur lors de la sauvegarde Supabase : " + error.message);
+      if (res.error) {
+        alert("Erreur lors de la sauvegarde Supabase : " + res.error.message);
       } else {
         await fetchBooks();
         closeModal();
