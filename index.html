@@ -51,8 +51,11 @@
     .search-input { flex: 2; min-width: 240px; padding: 10px 14px; font-size: 0.95rem; border: 1px solid var(--border-color); border-radius: 8px; outline: none; }
     .search-input:focus { border-color: var(--primary-color); }
     
-    .filter-group { display: flex; align-items: center; gap: 12px; }
+    .filter-group { display: flex; align-items: center; gap: 8px; }
     .filter-group label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .filter-select { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.85rem; font-weight: 600; outline: none; background: white; cursor: pointer; }
+    .filter-select:focus { border-color: var(--primary-color); }
+
     .checkbox-group-inline { display: flex; gap: 10px; align-items: center; }
     .checkbox-label-inline { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
     .checkbox-label-inline input { accent-color: var(--primary-color); width: 16px; height: 16px; cursor: pointer; }
@@ -82,8 +85,8 @@
 
     .product-img { width: 100%; height: 150px; object-fit: contain; margin-bottom: 8px; margin-top: 12px; border-radius: 6px; background: #fff; border: 1px solid var(--border-color); }
     .product-title { font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px; line-height: 1.3; height: 2.6em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-    .product-pcb { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }
-    .product-pcb span { font-weight: 700; color: var(--text-main); }
+    .product-details { display: flex; gap: 8px; justify-content: center; align-items: center; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; flex-wrap: wrap; }
+    .product-details span { font-weight: 700; color: var(--text-main); }
     .product-badge { background: #E8F5E9; color: var(--primary-color); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; }
     .barcode-svg { width: 100%; height: 45px; }
 
@@ -92,7 +95,6 @@
     .btn-action { background: rgba(255, 255, 255, 0.9); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
     .btn-action.delete { color: var(--danger-color); }
     
-    /* Bouton de suppression produit direct sur la carte */
     .delete-product-btn { display: none; position: absolute; top: 8px; right: 8px; background: var(--danger-color); color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 0.85rem; line-height: 26px; z-index: 5; text-align: center; }
     .admin-mode .delete-product-btn { display: block; }
 
@@ -124,10 +126,8 @@
       background-color: #E8F5E9;
     }
 
-    /* Bandeau d'en-tête spécial impression PDF */
     .print-header-banner { display: none; }
 
-    /* CSS d'impression PDF optimisé */
     @media print {
       @page { size: A4 portrait; margin: 8mm; }
       header, .breadcrumb, .results-header, .search-container, .admin-toggle, .no-print, .delete-product-btn { display: none !important; }
@@ -164,7 +164,7 @@
       }
       .product-img { height: 90px !important; margin-top: 4px !important; margin-bottom: 4px !important; }
       .product-title { font-size: 0.75rem !important; height: 2.4em !important; margin-bottom: 3px !important; line-height: 1.1 !important; }
-      .product-pcb { font-size: 0.7rem !important; margin-bottom: 2px !important; }
+      .product-details { font-size: 0.68rem !important; margin-bottom: 2px !important; gap: 4px !important; }
       .product-badge { font-size: 0.65rem !important; padding: 1px 4px !important; margin-bottom: 4px !important; }
       .barcode-svg { height: 30px !important; }
       .brand-badge { font-size: 0.6rem !important; padding: 2px 5px !important; top: 4px !important; left: 4px !important; }
@@ -229,7 +229,6 @@
 
     <!-- PAGE 4 : VUE INTERACTIVE DES PRODUITS DU BOOK -->
     <section id="page4" class="page">
-      <!-- Bandeau vert foncé visible exclusivement à l'impression/export PDF -->
       <div class="print-header-banner">
         <h2 id="printBookTitle">Catalogue Produits</h2>
         <span id="printBookSub">Carrefour Proximité</span>
@@ -255,7 +254,7 @@
       </div>
 
       <div class="search-container no-print">
-        <input type="text" id="productSearchInput" class="search-input" placeholder="🔍 Rechercher un produit par description ou EAN..." oninput="renderProducts()">
+        <input type="text" id="productSearchInput" class="search-input" placeholder="🔍 Rechercher par description, EAN ou IFLS..." oninput="renderProducts()">
         
         <div class="filter-group">
           <label>Marque :</label>
@@ -265,14 +264,16 @@
           </div>
         </div>
 
+        <!-- LISTE DÉROULANTE POUR FILTRER L'ASSORTIMENT -->
         <div class="filter-group">
-          <label>Assortiment :</label>
-          <div class="checkbox-group-inline">
-            <label class="checkbox-label-inline"><input type="checkbox" id="filterA" checked onchange="renderProducts()"> A</label>
-            <label class="checkbox-label-inline"><input type="checkbox" id="filterB" checked onchange="renderProducts()"> B</label>
-            <label class="checkbox-label-inline"><input type="checkbox" id="filterC" checked onchange="renderProducts()"> C</label>
-            <label class="checkbox-label-inline"><input type="checkbox" id="filterD" checked onchange="renderProducts()"> D</label>
-          </div>
+          <label for="filterAssortSelect">Assortiment :</label>
+          <select id="filterAssortSelect" class="filter-select" onchange="renderProducts()">
+            <option value="ALL">Tous</option>
+            <option value="A">Assortiment A</option>
+            <option value="B">Assortiment B</option>
+            <option value="C">Assortiment C</option>
+            <option value="D">Assortiment D</option>
+          </select>
         </div>
       </div>
 
@@ -293,7 +294,6 @@
           <input type="text" id="bookTitle" required placeholder="ex: EPICERIE SUCREE">
         </div>
 
-        <!-- ZONE D'IMPORT ET AJUSTEMENT D'IMAGE DE COUVERTURE -->
         <div class="form-group">
           <label>Image de Couverture</label>
           <div class="paste-drop-zone" id="coverDropZone" onclick="document.getElementById('coverFileInput').click()">
@@ -329,7 +329,6 @@
           <textarea id="bookDesc" rows="2" placeholder="Informations importantes sur ce catalogue..."></textarea>
         </div>
 
-        <!-- CHOIX EXCLUSIF IMPORT EXCEL OU LIEN DRIVE -->
         <div class="form-group">
           <label>Source du Catalogue *</label>
           <div class="radio-group">
@@ -387,6 +386,10 @@
         <div class="form-group">
           <label for="prodEan">Code EAN *</label>
           <input type="text" id="prodEan" required placeholder="3560071089610">
+        </div>
+        <div class="form-group">
+          <label for="prodIfls">Code IFLS</label>
+          <input type="text" id="prodIfls" placeholder="963261">
         </div>
         <div class="form-group">
           <label for="prodPcb">PCB (Colisage)</label>
@@ -556,7 +559,6 @@
       document.getElementById('catalogBookTitle').textContent = book.title;
       document.getElementById('catalogBookDesc').textContent = book.description || '';
       
-      // En-tête vert pour impression PDF
       document.getElementById('printBookTitle').textContent = book.title;
       document.getElementById('printBookSub').textContent = `${LABELS[state.sector]} | ${LABELS[state.format]}`;
 
@@ -569,6 +571,7 @@
       }
 
       document.getElementById('productSearchInput').value = '';
+      document.getElementById('filterAssortSelect').value = 'ALL';
       goToPage(4);
       renderProducts();
     }
@@ -582,25 +585,21 @@
       
       const showMDD = document.getElementById('filterMDD').checked;
       const showMN = document.getElementById('filterMN').checked;
-
-      const showA = document.getElementById('filterA').checked;
-      const showB = document.getElementById('filterB').checked;
-      const showC = document.getElementById('filterC').checked;
-      const showD = document.getElementById('filterD').checked;
+      const selectedAssort = document.getElementById('filterAssortSelect').value;
 
       const products = state.currentBook.products.filter((p, index) => {
-        p._originalIndex = index; // référence pour la suppression
+        p._originalIndex = index;
         const labelText = p.description || p.label || p.title || '';
-        const matchQuery = !query || labelText.toLowerCase().includes(query) || (p.ean && String(p.ean).includes(query));
+        const matchQuery = !query || 
+          labelText.toLowerCase().includes(query) || 
+          (p.ean && String(p.ean).includes(query)) ||
+          (p.ifls && String(p.ifls).includes(query));
         
         const brand = (p.brandType || p.brand || 'MDD').toUpperCase();
         const matchBrand = (brand === 'MDD' && showMDD) || (brand === 'MN' && showMN);
 
         const assort = (p.assortment || 'A').toUpperCase();
-        const matchAssort = (assort === 'A' && showA) || 
-                            (assort === 'B' && showB) || 
-                            (assort === 'C' && showC) || 
-                            (assort === 'D' && showD);
+        const matchAssort = (selectedAssort === 'ALL') || (assort === selectedAssort);
 
         return matchQuery && matchBrand && matchAssort;
       });
@@ -618,13 +617,17 @@
         const brandText = (p.brandType || p.brand || 'MDD').toUpperCase();
         const badgeClass = brandText === 'MN' ? 'badge-mn' : 'badge-mdd';
         const displayTitle = p.description || p.label || `Produit ${p.ean || idx + 1}`;
+        const iflsDisplay = p.ifls ? `| IFLS : <span>${p.ifls}</span>` : '';
 
         card.innerHTML = `
           <button class="delete-product-btn" onclick="removeProductFromCurrentBook(${p._originalIndex})" title="Supprimer ce produit">✕</button>
           <span class="brand-badge ${badgeClass}">${brandText}</span>
           <img src="${p.image || 'https://via.placeholder.com/150?text=Photo'}" class="product-img" alt="${displayTitle}" onerror="this.src='https://via.placeholder.com/150?text=Photo'">
           <div class="product-title">${displayTitle}</div>
-          <div class="product-pcb">PCB : <span>${p.pcb || 1}</span></div>
+          <div class="product-details">
+            <div>PCB : <span>${p.pcb || 1}</span></div>
+            ${iflsDisplay}
+          </div>
           <div class="product-badge">Assortiment : ${p.assortment || 'A'}</div>
           <svg id="${barcodeId}" class="barcode-svg"></svg>
         `;
@@ -640,7 +643,6 @@
       });
     }
 
-    // SUPPRESSION & SAUVEGARDE PRODUITS EN MODE ÉDITEUR
     function removeProductFromCurrentBook(originalIndex) {
       if (confirm("Voulez-vous retirer ce produit du book ?")) {
         state.currentBook.products.splice(originalIndex, 1);
@@ -670,7 +672,6 @@
       }
     }
 
-    // AJOUT MANUEL DE PRODUIT
     function openProductModal() {
       document.getElementById('productForm').reset();
       document.getElementById('prodImageData').value = '';
@@ -706,12 +707,13 @@
       e.preventDefault();
       const desc = document.getElementById('prodDesc').value.trim();
       const ean = document.getElementById('prodEan').value.trim();
+      const ifls = document.getElementById('prodIfls').value.trim();
       const pcb = document.getElementById('prodPcb').value || 1;
       const assortment = document.getElementById('prodAssort').value;
       const brandType = document.getElementById('prodBrand').value;
       const image = document.getElementById('prodImageData').value || '';
 
-      const newProd = { description: desc, label: desc, ean, pcb, assortment, brandType, image };
+      const newProd = { description: desc, label: desc, ean, ifls, pcb, assortment, brandType, image };
 
       if (!state.currentBook.products) state.currentBook.products = [];
       state.currentBook.products.unshift(newProd);
@@ -720,7 +722,6 @@
       renderProducts();
     }
 
-    // BASCULE ENTRE EXCEL ET DRIVE
     function toggleImportType() {
       const type = document.querySelector('input[name="importType"]:checked').value;
       const excelGroup = document.getElementById('excelGroup');
@@ -739,7 +740,6 @@
       document.getElementById('importStatus').innerText = '';
     }
 
-    // EXTRACTION STRICTEMENT SECTORISÉE SUR LA COLONNE A (col == 0)
     async function extractImagesFromExcel(file) {
       const zip = await JSZip.loadAsync(file);
       const rowImageMap = {};
@@ -796,7 +796,7 @@
       return rowImageMap;
     }
 
-    // PARSER EXCEL
+    // PARSER EXCEL AVEC DÉTECTION COLONNE IFLS
     document.getElementById('excelFile').addEventListener('change', async function(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -824,6 +824,7 @@
 
           const idxDesc = getColIndex(['description', 'desc', 'libelle', 'libellé', 'produit', 'nom']);
           const idxEan = getColIndex(['ean', 'code-barres', 'code barre']);
+          const idxIfls = getColIndex(['ifls', 'code ifls']);
           const idxPcb = getColIndex(['pcb', 'colisage']);
           const idxAssort = getColIndex(['assortiment', 'assort']);
           const idxBrand = getColIndex(['type marque', 'marque', 'type', 'mdd']);
@@ -843,6 +844,7 @@
               description: descriptionText,
               label: descriptionText,
               ean: ean,
+              ifls: idxIfls !== -1 && row[idxIfls] ? String(row[idxIfls]).trim() : '',
               pcb: idxPcb !== -1 && row[idxPcb] ? row[idxPcb] : 1,
               assortment: idxAssort !== -1 && row[idxAssort] ? String(row[idxAssort]).trim().toUpperCase() : 'A',
               brandType: idxBrand !== -1 && String(row[idxBrand]).toUpperCase().includes('MN') ? 'MN' : 'MDD',
@@ -861,7 +863,6 @@
       }
     });
 
-    // GESTION ET PREVIEW DE COUVERTURE AVEC CADRAGE
     function setCoverPreview(base64Data) {
       document.getElementById('bookImageData').value = base64Data;
       const preview = document.getElementById('imagePreview');
@@ -891,7 +892,6 @@
       }
     }
 
-    // Gestion du Copier-Coller (Ctrl+V) dans les deux modales
     document.addEventListener('paste', function(e) {
       const bookModalActive = document.getElementById('bookModal').classList.contains('active');
       const productModalActive = document.getElementById('productModal').classList.contains('active');
@@ -1007,8 +1007,11 @@
         res = await supabaseClient.from('books').insert([payload]);
       }
 
-      if (res.error && res.error.message.includes('drive_pdf')) {
+      if (res.error) {
+        delete payload.cover_fit;
+        delete payload.cover_pos;
         delete payload.drive_pdf;
+
         if (id) {
           res = await supabaseClient.from('books').update(payload).eq('id', id);
         } else {
