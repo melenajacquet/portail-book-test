@@ -66,7 +66,7 @@
     .books-container.list { display: flex; flex-direction: column; gap: 1rem; }
     .book-card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border-color); overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
     .book-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-    .book-cover { width: 100%; height: 180px; object-fit: cover; background-color: #EEE; }
+    .book-cover { width: 100%; height: 180px; background-color: #EEE; }
     .book-content { padding: 1.25rem; display: flex; flex-direction: column; flex: 1; }
     .book-title { font-size: 1.15rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0.5rem; }
     .book-desc { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.25rem; flex: 1; line-height: 1.4; }
@@ -91,13 +91,18 @@
     .admin-mode .admin-actions { display: flex; }
     .btn-action { background: rgba(255, 255, 255, 0.9); border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
     .btn-action.delete { color: var(--danger-color); }
+    
+    /* Bouton de suppression produit direct sur la carte */
+    .delete-product-btn { display: none; position: absolute; top: 8px; right: 8px; background: var(--danger-color); color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 0.85rem; line-height: 26px; z-index: 5; text-align: center; }
+    .admin-mode .delete-product-btn { display: block; }
+
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
     .modal-overlay.active { display: flex; }
     .modal { background: var(--card-bg); padding: 2rem; border-radius: var(--radius); width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
     .modal-title { font-size: 1.4rem; color: var(--primary-color); margin-bottom: 1.5rem; }
     .form-group { margin-bottom: 1.25rem; }
     .form-group label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.9rem; }
-    .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; }
+    .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; }
     .radio-group { display: flex; gap: 15px; margin-bottom: 1rem; }
     .radio-label { display: flex; align-items: center; gap: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
     .checkbox-group { display: flex; flex-direction: column; gap: 8px; background: var(--bg-color); padding: 10px; border-radius: 6px; }
@@ -105,7 +110,6 @@
     .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem; }
     .btn-secondary { background: #E0E0E0; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; }
 
-    /* Zone de glisser-déposer / copier-coller pour l'image de couverture */
     .paste-drop-zone {
       border: 2px dashed var(--border-color);
       border-radius: 8px;
@@ -120,12 +124,50 @@
       background-color: #E8F5E9;
     }
 
+    /* Bandeau d'en-tête spécial impression PDF */
+    .print-header-banner { display: none; }
+
+    /* CSS d'impression PDF optimisé */
     @media print {
-      header, .breadcrumb, .results-header, .search-container, .admin-toggle, .no-print { display: none !important; }
-      body { background: white; }
-      main { max-width: 100%; padding: 0; }
-      .product-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 10px; page-break-inside: avoid; }
-      .product-card { border: 1px solid #ccc; box-shadow: none; page-break-inside: avoid; }
+      @page { size: A4 portrait; margin: 8mm; }
+      header, .breadcrumb, .results-header, .search-container, .admin-toggle, .no-print, .delete-product-btn { display: none !important; }
+      body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      main { max-width: 100%; padding: 0; margin: 0; }
+      
+      .print-header-banner {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        background-color: #004B30 !important;
+        color: white !important;
+        padding: 10px 16px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .print-header-banner h2 { font-size: 1.2rem; font-weight: bold; margin: 0; color: white; }
+      .print-header-banner span { font-size: 0.85rem; opacity: 0.9; }
+
+      .product-grid { 
+        display: grid !important; 
+        grid-template-columns: repeat(4, 1fr) !important; 
+        gap: 6px !important; 
+        margin-top: 0 !important;
+      }
+      .product-card { 
+        border: 1px solid #CCC !important; 
+        box-shadow: none !important; 
+        padding: 6px !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .product-img { height: 90px !important; margin-top: 4px !important; margin-bottom: 4px !important; }
+      .product-title { font-size: 0.75rem !important; height: 2.4em !important; margin-bottom: 3px !important; line-height: 1.1 !important; }
+      .product-pcb { font-size: 0.7rem !important; margin-bottom: 2px !important; }
+      .product-badge { font-size: 0.65rem !important; padding: 1px 4px !important; margin-bottom: 4px !important; }
+      .barcode-svg { height: 30px !important; }
+      .brand-badge { font-size: 0.6rem !important; padding: 2px 5px !important; top: 4px !important; left: 4px !important; }
     }
   </style>
 </head>
@@ -187,6 +229,12 @@
 
     <!-- PAGE 4 : VUE INTERACTIVE DES PRODUITS DU BOOK -->
     <section id="page4" class="page">
+      <!-- Bandeau vert foncé visible exclusivement à l'impression/export PDF -->
+      <div class="print-header-banner">
+        <h2 id="printBookTitle">Catalogue Produits</h2>
+        <span id="printBookSub">Carrefour Proximité</span>
+      </div>
+
       <div class="breadcrumb no-print">
         <span class="breadcrumb-link" onclick="goToPage(3)">← Retour aux Books</span>
         <span>/</span>
@@ -198,7 +246,9 @@
           <h1 class="page-title" id="catalogBookTitle" style="text-align: left; margin:0;"></h1>
           <p id="catalogBookDesc" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;"></p>
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button class="add-book-btn" id="addProductBtn" onclick="openProductModal()">+ Ajouter un produit</button>
+          <button class="add-book-btn" id="saveProductsChangesBtn" onclick="saveCurrentBookProducts()" style="background: var(--accent-color);">💾 Enregistrer les modifications</button>
           <a id="drivePdfLink" href="#" target="_blank" class="drive-link no-print" style="display: none; background: var(--accent-color);">📄 Ouvrir le Book Drive PDF</a>
           <button class="drive-link no-print" onclick="window.print()">🖨️ Exporter en PDF</button>
         </div>
@@ -236,23 +286,42 @@
       <h2 class="modal-title" id="modalTitle">Ajouter un Book</h2>
       <form id="bookForm" onsubmit="handleFormSubmit(event)">
         <input type="hidden" id="bookId">
-        <input type="hidden" id="bookImageData"> <!-- Stocke le Base64 de l'image -->
+        <input type="hidden" id="bookImageData">
         
         <div class="form-group">
           <label for="bookTitle">Titre du Book *</label>
           <input type="text" id="bookTitle" required placeholder="ex: EPICERIE SUCREE">
         </div>
 
-        <!-- ZONE D'IMPORTation ET COPIER-COLLER D'IMAGE DE COUVERTURE -->
+        <!-- ZONE D'IMPORT ET AJUSTEMENT D'IMAGE DE COUVERTURE -->
         <div class="form-group">
           <label>Image de Couverture</label>
           <div class="paste-drop-zone" id="coverDropZone" onclick="document.getElementById('coverFileInput').click()">
             <p style="font-size:0.85rem; color: var(--text-muted); margin-bottom: 6px;">
-              📁 <strong>Cliquez pour choisir une photo</strong> ou faites <strong>Ctrl+V / Copier-Coller</strong> une image ici
+              📁 <strong>Cliquez pour choisir une photo</strong> ou faites <strong>Ctrl+V / Copier-Coller</strong>
             </p>
             <input type="file" id="coverFileInput" accept="image/*" style="display: none;" onchange="handleCoverFileSelect(event)">
           </div>
-          <img id="imagePreview" style="width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; margin-top: 8px; display: none;" alt="Aperçu">
+          
+          <div style="display: flex; gap: 10px; margin-top: 8px;">
+            <div style="flex: 1;">
+              <label style="font-size: 0.75rem;">Ajustement (Fit) :</label>
+              <select id="coverFitSelect" onchange="updateCoverPreviewStyle()" style="padding: 6px; font-size: 0.85rem;">
+                <option value="cover">Remplir (Cover)</option>
+                <option value="contain">Ajuster entier (Contain)</option>
+              </select>
+            </div>
+            <div style="flex: 1;">
+              <label style="font-size: 0.75rem;">Position :</label>
+              <select id="coverPosSelect" onchange="updateCoverPreviewStyle()" style="padding: 6px; font-size: 0.85rem;">
+                <option value="center">Centré</option>
+                <option value="top">Haut</option>
+                <option value="bottom">Bas</option>
+              </select>
+            </div>
+          </div>
+
+          <img id="imagePreview" style="width: 100%; height: 140px; border-radius: 6px; margin-top: 8px; display: none; background: #eee;" alt="Aperçu">
         </div>
 
         <div class="form-group">
@@ -299,6 +368,60 @@
         <div class="modal-actions">
           <button type="button" class="btn-secondary" onclick="closeModal()">Annuler</button>
           <button type="submit" class="add-book-btn" id="saveSubmitBtn" style="display: block;">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL AJOUT MANUEL DE PRODUIT -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <h2 class="modal-title">Ajouter un produit au Book</h2>
+      <form id="productForm" onsubmit="handleProductSubmit(event)">
+        <input type="hidden" id="prodImageData">
+        
+        <div class="form-group">
+          <label for="prodDesc">Description Produit *</label>
+          <input type="text" id="prodDesc" required placeholder="ex: 50CL BIERE BLONDE PRESTIGE 8%">
+        </div>
+        <div class="form-group">
+          <label for="prodEan">Code EAN *</label>
+          <input type="text" id="prodEan" required placeholder="3560071089610">
+        </div>
+        <div class="form-group">
+          <label for="prodPcb">PCB (Colisage)</label>
+          <input type="number" id="prodPcb" value="1" min="1">
+        </div>
+        <div class="form-group">
+          <label for="prodAssort">Assortiment</label>
+          <select id="prodAssort">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="prodBrand">Type Marque</label>
+          <select id="prodBrand">
+            <option value="MDD">MDD</option>
+            <option value="MN">MN</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Photo Produit</label>
+          <div class="paste-drop-zone" onclick="document.getElementById('prodFileInput').click()">
+            <p style="font-size:0.85rem; color: var(--text-muted);">
+              📁 Choisissez une photo ou faites <strong>Ctrl+V / Copier-Coller</strong>
+            </p>
+            <input type="file" id="prodFileInput" accept="image/*" style="display: none;" onchange="handleProductFileSelect(event)">
+          </div>
+          <img id="prodImagePreview" style="width: 100%; height: 100px; object-fit: contain; margin-top: 8px; display: none;" alt="Aperçu Produit">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" onclick="closeProductModal()">Annuler</button>
+          <button type="submit" class="add-book-btn" style="display: block;">Ajouter au Book</button>
         </div>
       </form>
     </div>
@@ -352,6 +475,8 @@
           document.getElementById('adminToggleBtn').textContent = "Quitter Mode Éditeur";
           document.getElementById('adminToggleBtn').classList.add('active');
           document.getElementById('addBookBtn').style.display = 'block';
+          document.getElementById('addProductBtn').style.display = 'block';
+          document.getElementById('saveProductsChangesBtn').style.display = 'block';
           document.body.classList.add('admin-mode');
         } else if (pass !== null) {
           alert("Mot de passe incorrect.");
@@ -361,9 +486,12 @@
         document.getElementById('adminToggleBtn').textContent = "Accès Éditeur";
         document.getElementById('adminToggleBtn').classList.remove('active');
         document.getElementById('addBookBtn').style.display = 'none';
+        document.getElementById('addProductBtn').style.display = 'none';
+        document.getElementById('saveProductsChangesBtn').style.display = 'none';
         document.body.classList.remove('admin-mode');
       }
       renderBooks();
+      renderProducts();
     }
 
     function setViewMode(mode) {
@@ -403,9 +531,12 @@
           ? `window.open('${book.drive_pdf}', '_blank')`
           : `openCatalog('${book.id}')`;
 
+        const fitStyle = book.cover_fit || 'cover';
+        const posStyle = book.cover_pos || 'center';
+
         card.innerHTML = `
           ${state.isAdmin ? `<div class="admin-actions"><button class="btn-action" onclick="editBook('${book.id}')">Éditer</button><button class="btn-action delete" onclick="deleteBook('${book.id}')">Supprimer</button></div>` : ''}
-          <img src="${book.image || 'https://via.placeholder.com/600x400?text=Carrefour+Proximité'}" alt="${book.title}" class="book-cover" onerror="this.src='https://via.placeholder.com/600x400?text=Carrefour+Proximité'">
+          <img src="${book.image || 'https://via.placeholder.com/600x400?text=Carrefour+Proximité'}" alt="${book.title}" class="book-cover" style="object-fit: ${fitStyle}; object-position: ${posStyle};" onerror="this.src='https://via.placeholder.com/600x400?text=Carrefour+Proximité'">
           <div class="book-content">
             <h3 class="book-title">${book.title}</h3>
             <p class="book-desc">${book.description || 'Catalogue des produits du rayon.'}</p>
@@ -425,6 +556,10 @@
       document.getElementById('catalogBookTitle').textContent = book.title;
       document.getElementById('catalogBookDesc').textContent = book.description || '';
       
+      // En-tête vert pour impression PDF
+      document.getElementById('printBookTitle').textContent = book.title;
+      document.getElementById('printBookSub').textContent = `${LABELS[state.sector]} | ${LABELS[state.format]}`;
+
       const driveBtn = document.getElementById('drivePdfLink');
       if (book.drive_pdf) {
         driveBtn.href = book.drive_pdf;
@@ -453,7 +588,8 @@
       const showC = document.getElementById('filterC').checked;
       const showD = document.getElementById('filterD').checked;
 
-      const products = state.currentBook.products.filter(p => {
+      const products = state.currentBook.products.filter((p, index) => {
+        p._originalIndex = index; // référence pour la suppression
         const labelText = p.description || p.label || p.title || '';
         const matchQuery = !query || labelText.toLowerCase().includes(query) || (p.ean && String(p.ean).includes(query));
         
@@ -481,10 +617,10 @@
 
         const brandText = (p.brandType || p.brand || 'MDD').toUpperCase();
         const badgeClass = brandText === 'MN' ? 'badge-mn' : 'badge-mdd';
-
         const displayTitle = p.description || p.label || `Produit ${p.ean || idx + 1}`;
 
         card.innerHTML = `
+          <button class="delete-product-btn" onclick="removeProductFromCurrentBook(${p._originalIndex})" title="Supprimer ce produit">✕</button>
           <span class="brand-badge ${badgeClass}">${brandText}</span>
           <img src="${p.image || 'https://via.placeholder.com/150?text=Photo'}" class="product-img" alt="${displayTitle}" onerror="this.src='https://via.placeholder.com/150?text=Photo'">
           <div class="product-title">${displayTitle}</div>
@@ -502,6 +638,86 @@
           }
         }
       });
+    }
+
+    // SUPPRESSION & SAUVEGARDE PRODUITS EN MODE ÉDITEUR
+    function removeProductFromCurrentBook(originalIndex) {
+      if (confirm("Voulez-vous retirer ce produit du book ?")) {
+        state.currentBook.products.splice(originalIndex, 1);
+        renderProducts();
+      }
+    }
+
+    async function saveCurrentBookProducts() {
+      if (!state.currentBook) return;
+      const saveBtn = document.getElementById('saveProductsChangesBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Sauvegarde...";
+
+      const { error } = await supabaseClient
+        .from('books')
+        .update({ products: state.currentBook.products })
+        .eq('id', state.currentBook.id);
+
+      saveBtn.disabled = false;
+      saveBtn.textContent = "💾 Enregistrer les modifications";
+
+      if (error) {
+        alert("Erreur lors de la mise à jour : " + error.message);
+      } else {
+        alert("✅ Modifications des produits enregistrées avec succès !");
+        fetchBooks();
+      }
+    }
+
+    // AJOUT MANUEL DE PRODUIT
+    function openProductModal() {
+      document.getElementById('productForm').reset();
+      document.getElementById('prodImageData').value = '';
+      document.getElementById('prodImagePreview').style.display = 'none';
+      document.getElementById('productModal').classList.add('active');
+    }
+
+    function closeProductModal() {
+      document.getElementById('productModal').classList.remove('active');
+    }
+
+    function handleProductFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) { setProductPreview(evt.target.result); };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function setProductPreview(base64) {
+      document.getElementById('prodImageData').value = base64;
+      const preview = document.getElementById('prodImagePreview');
+      if (base64) {
+        preview.src = base64;
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+    }
+
+    function handleProductSubmit(e) {
+      e.preventDefault();
+      const desc = document.getElementById('prodDesc').value.trim();
+      const ean = document.getElementById('prodEan').value.trim();
+      const pcb = document.getElementById('prodPcb').value || 1;
+      const assortment = document.getElementById('prodAssort').value;
+      const brandType = document.getElementById('prodBrand').value;
+      const image = document.getElementById('prodImageData').value || '';
+
+      const newProd = { description: desc, label: desc, ean, pcb, assortment, brandType, image };
+
+      if (!state.currentBook.products) state.currentBook.products = [];
+      state.currentBook.products.unshift(newProd);
+      
+      closeProductModal();
+      renderProducts();
     }
 
     // BASCULE ENTRE EXCEL ET DRIVE
@@ -645,16 +861,25 @@
       }
     });
 
-    // GESTION IMPORT / COPIER-COLLER PHOTO DE COUVERTURE
+    // GESTION ET PREVIEW DE COUVERTURE AVEC CADRAGE
     function setCoverPreview(base64Data) {
       document.getElementById('bookImageData').value = base64Data;
       const preview = document.getElementById('imagePreview');
       if (base64Data) {
         preview.src = base64Data;
         preview.style.display = 'block';
+        updateCoverPreviewStyle();
       } else {
         preview.style.display = 'none';
       }
+    }
+
+    function updateCoverPreviewStyle() {
+      const fit = document.getElementById('coverFitSelect').value;
+      const pos = document.getElementById('coverPosSelect').value;
+      const preview = document.getElementById('imagePreview');
+      preview.style.objectFit = fit;
+      preview.style.objectPosition = pos;
     }
 
     function handleCoverFileSelect(e) {
@@ -666,10 +891,12 @@
       }
     }
 
-    // Gestion de l'événement Copier-Coller (Ctrl+V) dans la modale
+    // Gestion du Copier-Coller (Ctrl+V) dans les deux modales
     document.addEventListener('paste', function(e) {
-      const modal = document.getElementById('bookModal');
-      if (!modal.classList.contains('active')) return;
+      const bookModalActive = document.getElementById('bookModal').classList.contains('active');
+      const productModalActive = document.getElementById('productModal').classList.contains('active');
+
+      if (!bookModalActive && !productModalActive) return;
 
       const items = (e.clipboardData || e.originalEvent.clipboardData).items;
       for (let index in items) {
@@ -677,7 +904,10 @@
         if (item.kind === 'file' && item.type.startsWith('image/')) {
           const blob = item.getAsFile();
           const reader = new FileReader();
-          reader.onload = function(evt) { setCoverPreview(evt.target.result); };
+          reader.onload = function(evt) {
+            if (bookModalActive) setCoverPreview(evt.target.result);
+            if (productModalActive) setProductPreview(evt.target.result);
+          };
           reader.readAsDataURL(blob);
           break;
         }
@@ -699,6 +929,8 @@
           document.getElementById('bookId').value = book.id;
           document.getElementById('bookTitle').value = book.title;
           document.getElementById('bookDesc').value = book.description || '';
+          document.getElementById('coverFitSelect').value = book.cover_fit || 'cover';
+          document.getElementById('coverPosSelect').value = book.cover_pos || 'center';
           
           if (book.image) {
             setCoverPreview(book.image);
@@ -741,6 +973,9 @@
       const image = document.getElementById('bookImageData').value;
       const description = document.getElementById('bookDesc').value;
       const drive_pdf = document.getElementById('bookDrivePdf').value;
+      const cover_fit = document.getElementById('coverFitSelect').value;
+      const cover_pos = document.getElementById('coverPosSelect').value;
+
       const sectors = Array.from(document.querySelectorAll('input[name="sector"]:checked')).map(cb => cb.value);
       const formats = Array.from(document.querySelectorAll('input[name="format"]:checked')).map(cb => cb.value);
 
@@ -756,6 +991,8 @@
         description, 
         sectors, 
         formats, 
+        cover_fit,
+        cover_pos,
         products: state.parsedProducts 
       };
 
