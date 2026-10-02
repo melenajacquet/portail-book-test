@@ -384,7 +384,6 @@
         const card = document.createElement('div');
         card.className = 'book-card';
         
-        // Si c'est un book Drive pur, ouvrir le lien Drive au clic
         const clickAction = (book.drive_pdf && (!book.products || book.products.length === 0))
           ? `window.open('${book.drive_pdf}', '_blank')`
           : `openCatalog('${book.id}')`;
@@ -468,7 +467,6 @@
         const brandText = (p.brandType || p.brand || 'MDD').toUpperCase();
         const badgeClass = brandText === 'MN' ? 'badge-mn' : 'badge-mdd';
 
-        // Le titre prend STRICTEMENT la colonne Description
         const displayTitle = p.description || p.label || `Produit ${p.ean || idx + 1}`;
 
         card.innerHTML = `
@@ -510,7 +508,7 @@
       document.getElementById('importStatus').innerText = '';
     }
 
-    // EXTRACTION OPTIMISÉE DES IMAGES EXCEL (COLONNE A / ANCRES)
+    // EXTRACTION STRICTEMENT SECTORISÉE SUR LA COLONNE A (col == 0)
     async function extractImagesFromExcel(file) {
       const zip = await JSZip.loadAsync(file);
       const rowImageMap = {};
@@ -541,20 +539,26 @@
       for (let i = 0; i < anchors.length; i++) {
         const anchor = anchors[i];
         const fromRow = anchor.querySelector("from > row");
+        const fromCol = anchor.querySelector("from > col");
         const blip = anchor.querySelector("blip");
 
         if (fromRow && blip) {
-          const rowIndex = parseInt(fromRow.textContent, 10);
-          const embedId = blip.getAttribute("r:embed") || blip.getAttribute("r:link");
-          const imageName = relMap[embedId];
+          const colIndex = fromCol ? parseInt(fromCol.textContent, 10) : 0;
+          
+          // FILTRE STRICT : On ne prend QUE les images de la colonne A (index 0)
+          if (colIndex === 0) {
+            const rowIndex = parseInt(fromRow.textContent, 10);
+            const embedId = blip.getAttribute("r:embed") || blip.getAttribute("r:link");
+            const imageName = relMap[embedId];
 
-          if (imageName) {
-            const imageFile = zip.file(`xl/media/${imageName}`);
-            if (imageFile) {
-              const base64 = await imageFile.async("base64");
-              const ext = imageName.split('.').pop().toLowerCase();
-              const mime = (ext === 'png') ? 'image/png' : 'image/jpeg';
-              rowImageMap[rowIndex] = `data:${mime};base64,${base64}`;
+            if (imageName) {
+              const imageFile = zip.file(`xl/media/${imageName}`);
+              if (imageFile) {
+                const base64 = await imageFile.async("base64");
+                const ext = imageName.split('.').pop().toLowerCase();
+                const mime = (ext === 'png') ? 'image/png' : 'image/jpeg';
+                rowImageMap[rowIndex] = `data:${mime};base64,${base64}`;
+              }
             }
           }
         }
@@ -592,7 +596,7 @@
           const idxEan = getColIndex(['ean', 'code-barres', 'code barre']);
           const idxPcb = getColIndex(['pcb', 'colisage']);
           const idxAssort = getColIndex(['assortiment', 'assort']);
-          const idxBrand = getColIndex(['marque', 'type', 'mdd']);
+          const idxBrand = getColIndex(['type marque', 'marque', 'type', 'mdd']);
 
           let extracted = [];
 
@@ -709,7 +713,6 @@
         products: state.parsedProducts 
       };
 
-      // Si le champ Drive est rempli, on tente de l'inclure
       if (drive_pdf) {
         payload.drive_pdf = drive_pdf;
       }
@@ -721,7 +724,6 @@
         res = await supabaseClient.from('books').insert([payload]);
       }
 
-      // Si Supabase renvoie une erreur sur la colonne drive_pdf, on reteste sans la colonne
       if (res.error && res.error.message.includes('drive_pdf')) {
         delete payload.drive_pdf;
         if (id) {
