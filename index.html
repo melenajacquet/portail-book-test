@@ -105,6 +105,21 @@
     .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem; }
     .btn-secondary { background: #E0E0E0; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; }
 
+    /* Zone de glisser-déposer / copier-coller pour l'image de couverture */
+    .paste-drop-zone {
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      background: var(--bg-color);
+      cursor: pointer;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+    .paste-drop-zone:hover, .paste-drop-zone.dragover {
+      border-color: var(--primary-color);
+      background-color: #E8F5E9;
+    }
+
     @media print {
       header, .breadcrumb, .results-header, .search-container, .admin-toggle, .no-print { display: none !important; }
       body { background: white; }
@@ -221,16 +236,25 @@
       <h2 class="modal-title" id="modalTitle">Ajouter un Book</h2>
       <form id="bookForm" onsubmit="handleFormSubmit(event)">
         <input type="hidden" id="bookId">
+        <input type="hidden" id="bookImageData"> <!-- Stocke le Base64 de l'image -->
         
         <div class="form-group">
           <label for="bookTitle">Titre du Book *</label>
           <input type="text" id="bookTitle" required placeholder="ex: EPICERIE SUCREE">
         </div>
+
+        <!-- ZONE D'IMPORTation ET COPIER-COLLER D'IMAGE DE COUVERTURE -->
         <div class="form-group">
-          <label for="bookImage">Lien URL de l'image de couverture</label>
-          <input type="url" id="bookImage" placeholder="https://..." onchange="previewImage(this.value)">
-          <img id="imagePreview" style="width: 100%; max-height: 120px; object-fit: cover; border-radius: 6px; margin-top: 8px; display: none;" alt="Aperçu">
+          <label>Image de Couverture</label>
+          <div class="paste-drop-zone" id="coverDropZone" onclick="document.getElementById('coverFileInput').click()">
+            <p style="font-size:0.85rem; color: var(--text-muted); margin-bottom: 6px;">
+              📁 <strong>Cliquez pour choisir une photo</strong> ou faites <strong>Ctrl+V / Copier-Coller</strong> une image ici
+            </p>
+            <input type="file" id="coverFileInput" accept="image/*" style="display: none;" onchange="handleCoverFileSelect(event)">
+          </div>
+          <img id="imagePreview" style="width: 100%; max-height: 140px; object-fit: cover; border-radius: 6px; margin-top: 8px; display: none;" alt="Aperçu">
         </div>
+
         <div class="form-group">
           <label for="bookDesc">Description / Consignes</label>
           <textarea id="bookDesc" rows="2" placeholder="Informations importantes sur ce catalogue..."></textarea>
@@ -287,15 +311,6 @@
 
     let state = { sector: null, format: null, isAdmin: false, viewMode: 'grid', books: [], currentBook: null, parsedProducts: [] };
     const LABELS = { NORD: "St-Vulbas, Bagé, Mâcon (Nord)", SALON: "Salon", '63': "63 - Rural", '70': "70 - Urbain" };
-
-    function formatDriveImageUrl(url) {
-      if (!url) return '';
-      if (url.includes('drive.google.com') && url.includes('/file/d/')) {
-        const fileId = url.split('/file/d/')[1].split('/')[0];
-        return `https://lh3.googleusercontent.com/d/${fileId}`;
-      }
-      return url;
-    }
 
     async function fetchBooks() {
       try {
@@ -390,7 +405,7 @@
 
         card.innerHTML = `
           ${state.isAdmin ? `<div class="admin-actions"><button class="btn-action" onclick="editBook('${book.id}')">Éditer</button><button class="btn-action delete" onclick="deleteBook('${book.id}')">Supprimer</button></div>` : ''}
-          <img src="${formatDriveImageUrl(book.image)}" alt="${book.title}" class="book-cover" onerror="this.src='https://via.placeholder.com/600x400?text=Carrefour+Proximité'">
+          <img src="${book.image || 'https://via.placeholder.com/600x400?text=Carrefour+Proximité'}" alt="${book.title}" class="book-cover" onerror="this.src='https://via.placeholder.com/600x400?text=Carrefour+Proximité'">
           <div class="book-content">
             <h3 class="book-title">${book.title}</h3>
             <p class="book-desc">${book.description || 'Catalogue des produits du rayon.'}</p>
@@ -545,7 +560,6 @@
         if (fromRow && blip) {
           const colIndex = fromCol ? parseInt(fromCol.textContent, 10) : 0;
           
-          // FILTRE STRICT : On ne prend QUE les images de la colonne A (index 0)
           if (colIndex === 0) {
             const rowIndex = parseInt(fromRow.textContent, 10);
             const embedId = blip.getAttribute("r:embed") || blip.getAttribute("r:link");
@@ -631,19 +645,49 @@
       }
     });
 
-    function previewImage(url) {
+    // GESTION IMPORT / COPIER-COLLER PHOTO DE COUVERTURE
+    function setCoverPreview(base64Data) {
+      document.getElementById('bookImageData').value = base64Data;
       const preview = document.getElementById('imagePreview');
-      if (url) {
-        preview.src = formatDriveImageUrl(url);
+      if (base64Data) {
+        preview.src = base64Data;
         preview.style.display = 'block';
       } else {
         preview.style.display = 'none';
       }
     }
 
+    function handleCoverFileSelect(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) { setCoverPreview(evt.target.result); };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Gestion de l'événement Copier-Coller (Ctrl+V) dans la modale
+    document.addEventListener('paste', function(e) {
+      const modal = document.getElementById('bookModal');
+      if (!modal.classList.contains('active')) return;
+
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let index in items) {
+        const item = items[index];
+        if (item.kind === 'file' && item.type.startsWith('image/')) {
+          const blob = item.getAsFile();
+          const reader = new FileReader();
+          reader.onload = function(evt) { setCoverPreview(evt.target.result); };
+          reader.readAsDataURL(blob);
+          break;
+        }
+      }
+    });
+
     function openModal(editId = null) {
       const modal = document.getElementById('bookModal');
       document.getElementById('bookForm').reset();
+      document.getElementById('bookImageData').value = '';
       document.getElementById('imagePreview').style.display = 'none';
       document.getElementById('importStatus').innerText = '';
       state.parsedProducts = [];
@@ -654,9 +698,12 @@
           document.getElementById('modalTitle').textContent = "Modifier le Book";
           document.getElementById('bookId').value = book.id;
           document.getElementById('bookTitle').value = book.title;
-          document.getElementById('bookImage').value = book.image || '';
           document.getElementById('bookDesc').value = book.description || '';
           
+          if (book.image) {
+            setCoverPreview(book.image);
+          }
+
           if (book.drive_pdf) {
             document.querySelector('input[name="importType"][value="drive"]').checked = true;
             document.getElementById('bookDrivePdf').value = book.drive_pdf;
@@ -665,7 +712,6 @@
           }
           toggleImportType();
 
-          previewImage(book.image);
           document.querySelectorAll('input[name="sector"]').forEach(cb => cb.checked = book.sectors.includes(cb.value));
           document.querySelectorAll('input[name="format"]').forEach(cb => cb.checked = book.formats.includes(cb.value));
           state.parsedProducts = book.products || [];
@@ -692,7 +738,7 @@
 
       const id = document.getElementById('bookId').value;
       const title = document.getElementById('bookTitle').value;
-      const image = document.getElementById('bookImage').value;
+      const image = document.getElementById('bookImageData').value;
       const description = document.getElementById('bookDesc').value;
       const drive_pdf = document.getElementById('bookDrivePdf').value;
       const sectors = Array.from(document.querySelectorAll('input[name="sector"]:checked')).map(cb => cb.value);
