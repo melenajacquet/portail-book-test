@@ -27,14 +27,14 @@
       --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; }
+    body { background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
     header { background-color: var(--card-bg); border-bottom: 2px solid var(--border-color); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
     .brand { display: flex; align-items: center; gap: 12px; }
     .brand-logo { width: 14px; height: 24px; background-color: var(--primary-color); border-radius: 2px; }
     .brand-title { font-size: 1.25rem; font-weight: 700; color: var(--primary-color); letter-spacing: -0.5px; }
     .admin-toggle { background: transparent; border: 1px solid var(--border-color); padding: 0.5rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); transition: all 0.2s; }
     .admin-toggle:hover, .admin-toggle.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
-    main { flex: 1; max-width: 1100px; width: 100%; margin: 0 auto; padding: 2.5rem 1.5rem; }
+    main { flex: 1; max-width: 1100px; width: 100%; margin: 0 auto; padding: 2.5rem 1.5rem; position: relative; }
     .page { display: none; animation: fadeIn 0.3s ease-in-out; }
     .page.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -80,6 +80,56 @@
       gap: 4px;
       z-index: 3;
     }
+
+    /* TIROIR DÉPLIANT FILTRE FAMILLE */
+    .sidebar-drawer {
+      position: fixed;
+      top: 0;
+      right: -340px;
+      width: 320px;
+      height: 100vh;
+      background: white;
+      box-shadow: -5px 0 25px rgba(0,0,0,0.15);
+      z-index: 1500;
+      transition: right 0.3s ease-in-out;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-drawer.open { right: 0; }
+    .sidebar-header {
+      background: var(--primary-color);
+      color: white;
+      padding: 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sidebar-header h3 { font-size: 1.1rem; font-weight: 700; }
+    .sidebar-close { background: transparent; border: none; color: white; font-size: 1.4rem; cursor: pointer; }
+    .sidebar-content { padding: 1.2rem; overflow-y: auto; flex: 1; }
+    .sidebar-actions { display: flex; gap: 8px; margin-bottom: 1rem; }
+    .sidebar-btn-small { flex: 1; padding: 6px; font-size: 0.8rem; border: 1px solid var(--border-color); background: #f0f0f0; border-radius: 4px; cursor: pointer; font-weight: 600; }
+    .sidebar-btn-small:hover { background: #e0e0e0; }
+    .family-filter-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 4px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .family-filter-item:hover { background: #F8F9FA; }
+    .family-filter-item input { accent-color: var(--primary-color); width: 16px; height: 16px; cursor: pointer; }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 1400;
+      display: none;
+    }
+    .sidebar-overlay.active { display: block; }
 
     /* MENU DÉROULANT ASSORTIMENT */
     .dropdown-assort { position: relative; display: inline-block; }
@@ -153,7 +203,6 @@
     .drive-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--primary-color); color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; text-align: center; transition: background 0.2s; cursor: pointer; border: none; }
     .drive-link:hover { background: var(--primary-hover); }
     
-    /* BANDEAU FIN DE FAMILLE PRODUIT */
     .family-banner {
       grid-column: 1 / -1;
       background: var(--primary-color);
@@ -240,7 +289,7 @@
 
     @media print {
       @page { size: A4 portrait; margin: 8mm; }
-      header, .breadcrumb, .results-header, .search-container, .admin-toggle, .no-print, .delete-product-btn, .zoom-modal { display: none !important; }
+      header, .breadcrumb, .results-header, .search-container, .admin-toggle, .no-print, .delete-product-btn, .zoom-modal, .sidebar-drawer { display: none !important; }
       body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       main { max-width: 100%; padding: 0; margin: 0; }
       
@@ -359,6 +408,7 @@
           <p id="catalogBookDesc" style="color: var(--text-muted); font-size: 0.9rem; margin-top: 4px;"></p>
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">
+          <button class="drive-link no-print" onclick="openSidebarDrawer()" style="background: var(--primary-color);">📁 Filtre Familles</button>
           <button class="add-book-btn" id="addProductBtn" onclick="openProductModal()">+ Ajouter un produit</button>
           <button class="add-book-btn" id="saveProductsChangesBtn" onclick="saveCurrentBookProducts()" style="background: var(--accent-color);">💾 Enregistrer les modifications</button>
           <a id="drivePdfLink" href="#" target="_blank" class="drive-link no-print" style="display: none; background: var(--accent-color);">📄 Ouvrir le Book Drive PDF</a>
@@ -417,6 +467,22 @@
       <div id="productsContainer" class="product-grid"></div>
     </section>
   </main>
+
+  <!-- TIROIR LATÉRAL FILTRE PAR FAMILLE -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebarDrawer()"></div>
+  <aside class="sidebar-drawer" id="sidebarDrawer">
+    <div class="sidebar-header">
+      <h3>Filtre par Familles</h3>
+      <button class="sidebar-close" onclick="closeSidebarDrawer()">✕</button>
+    </div>
+    <div class="sidebar-content">
+      <div class="sidebar-actions">
+        <button class="sidebar-btn-small" onclick="toggleAllFamilies(true)">Tout cocher</button>
+        <button class="sidebar-btn-small" onclick="toggleAllFamilies(false)">Tout décocher</button>
+      </div>
+      <div id="familyFilterList"></div>
+    </div>
+  </aside>
 
   <!-- MODALE ZOOM PRODUIT POUR SCAN MOBILE -->
   <div class="zoom-modal" id="zoomModal" onclick="closeZoomModal()">
@@ -593,7 +659,7 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtZ3djYnhiY2JjeGNvcmN2d3J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5MzcyMjQsImV4cCI6MjEwNjUxMzIyNH0.0KrLxbTISzxpf0LngVWYw1vpaAlxdZBkrx099U3Saj0';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    let state = { sector: null, format: null, isAdmin: false, viewMode: 'grid', books: [], currentBook: null, parsedProducts: [] };
+    let state = { sector: null, format: null, isAdmin: false, viewMode: 'grid', books: [], currentBook: null, parsedProducts: [], selectedFamilies: [] };
     const LABELS = { NORD: "St-Vulbas, Bagé, Mâcon (Nord)", SALON: "Salon", '63': "63 - Rural", '70': "70 - Urbain" };
 
     function isWithinOneWeek(dateString) {
@@ -766,7 +832,65 @@
       });
       updateAssortBtnLabel();
 
+      initFamilyFilters();
       goToPage(4);
+      renderProducts();
+    }
+
+    /* TIROIR LATÉRAL FILTRE FAMILLE */
+    function openSidebarDrawer() {
+      document.getElementById('sidebarDrawer').classList.add('open');
+      document.getElementById('sidebarOverlay').classList.add('active');
+    }
+
+    function closeSidebarDrawer() {
+      document.getElementById('sidebarDrawer').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('active');
+    }
+
+    function initFamilyFilters() {
+      const filterListDiv = document.getElementById('familyFilterList');
+      filterListDiv.innerHTML = '';
+
+      if (!state.currentBook || !state.currentBook.products) return;
+
+      const familyCounts = {};
+      state.currentBook.products.forEach(p => {
+        const fam = p.family && p.family.trim() ? p.family.trim().toUpperCase() : 'AUTRES / DIVERS';
+        familyCounts[fam] = (familyCounts[fam] || 0) + 1;
+      });
+
+      const families = Object.keys(familyCounts).sort();
+      state.selectedFamilies = [...families];
+
+      families.forEach(fam => {
+        const item = document.createElement('label');
+        item.className = 'family-filter-item';
+        item.innerHTML = `
+          <span>${fam} <strong>(${familyCounts[fam]})</strong></span>
+          <input type="checkbox" value="${fam}" checked onchange="onFamilyCheckboxChange(event)">
+        `;
+        filterListDiv.appendChild(item);
+      });
+    }
+
+    function onFamilyCheckboxChange(e) {
+      const fam = e.target.value;
+      if (e.target.checked) {
+        if (!state.selectedFamilies.includes(fam)) state.selectedFamilies.push(fam);
+      } else {
+        state.selectedFamilies = state.selectedFamilies.filter(f => f !== fam);
+      }
+      renderProducts();
+    }
+
+    function toggleAllFamilies(select) {
+      const checkboxes = document.querySelectorAll('#familyFilterList input[type="checkbox"]');
+      state.selectedFamilies = [];
+      checkboxes.forEach(cb => {
+        cb.checked = select;
+        if (select) state.selectedFamilies.push(cb.value);
+      });
       renderProducts();
     }
 
@@ -873,7 +997,8 @@
       const products = state.currentBook.products.filter((p, index) => {
         p._originalIndex = index;
         const labelText = p.description || p.label || p.title || '';
-        const familyText = p.family || '';
+        const familyText = p.family && p.family.trim() ? p.family.trim().toUpperCase() : 'AUTRES / DIVERS';
+        
         const matchQuery = !query || 
           labelText.toLowerCase().includes(query) || 
           familyText.toLowerCase().includes(query) || 
@@ -885,10 +1010,11 @@
 
         let assort = (p.assortment || 'NONE').toUpperCase().trim();
         if (!assort || assort === '' || assort === 'SANS NIVEAU' || assort === 'SANS') assort = 'NONE';
-        
         const matchAssort = selectedAssorts.includes(assort);
 
-        return matchQuery && matchBrand && matchAssort;
+        const matchFamily = state.selectedFamilies.includes(familyText);
+
+        return matchQuery && matchBrand && matchAssort && matchFamily;
       });
 
       if (products.length === 0) {
@@ -908,7 +1034,7 @@
       Object.keys(groupedByFamily).sort().forEach(family => {
         const familyBanner = document.createElement('div');
         familyBanner.className = 'family-banner';
-        familyBanner.innerHTML = `📁 Famille : ${family}`;
+        familyBanner.innerHTML = ` Famille : ${family}`;
         container.appendChild(familyBanner);
 
         groupedByFamily[family].forEach(p => {
@@ -977,13 +1103,10 @@
       saveBtn.disabled = true;
       saveBtn.textContent = "Sauvegarde...";
 
-      const nowIso = new Date().toISOString();
-
       const { error } = await supabaseClient
         .from('books')
         .update({ 
-          products: state.currentBook.products,
-          updated_at: nowIso
+          products: state.currentBook.products
         })
         .eq('id', state.currentBook.id);
 
@@ -1059,6 +1182,7 @@
       state.currentBook.products.unshift(newProd);
       
       closeProductModal();
+      initFamilyFilters();
       renderProducts();
     }
 
@@ -1080,66 +1204,89 @@
       document.getElementById('importStatus').innerText = '';
     }
 
-    // EXTRACTION D'IMAGES ASYNCHRONE ET PARALLÉLISÉE ULTRA RAPIDE
-    async function extractImagesFromExcel(file) {
+    // EXTRACTION PROGRESSIVE SANS BLOQUER
+    async function extractImagesFromExcelChunked(file, onProgress) {
       const zip = await JSZip.loadAsync(file);
       const rowImageMap = {};
 
-      let drawingXmlStr = null, drawingRelsXmlStr = null;
-
-      zip.forEach((relativePath, zipEntry) => {
-        if (relativePath.match(/xl\/drawings\/drawing\d+\.xml$/i)) drawingXmlStr = relativePath;
-        if (relativePath.match(/xl\/drawings\/_rels\/drawing\d+\.xml\.rels$/i)) drawingRelsXmlStr = relativePath;
+      const drawingFiles = [];
+      zip.forEach((relativePath) => {
+        if (relativePath.match(/^xl\/drawings\/drawing\d+\.xml$/i)) {
+          drawingFiles.push(relativePath);
+        }
       });
 
-      if (!drawingXmlStr || !drawingRelsXmlStr) return rowImageMap;
+      if (drawingFiles.length === 0) return rowImageMap;
 
-      const drawingXml = await zip.file(drawingXmlStr).async("string");
-      const drawingRelsXml = await zip.file(drawingRelsXmlStr).async("string");
+      const tasks = [];
 
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(drawingXml, "application/xml");
-      const relsDoc = parser.parseFromString(drawingRelsXml, "application/xml");
+      for (const drawingXmlPath of drawingFiles) {
+        const relsPath = drawingXmlPath.replace('xl/drawings/', 'xl/drawings/_rels/') + '.rels';
+        const drawingFile = zip.file(drawingXmlPath);
+        const relsFile = zip.file(relsPath);
 
-      const relMap = {};
-      const relationshipNodes = relsDoc.getElementsByTagName("Relationship");
-      for (let i = 0; i < relationshipNodes.length; i++) {
-        relMap[relationshipNodes[i].getAttribute("Id")] = relationshipNodes[i].getAttribute("Target").replace("../media/", "");
-      }
+        if (!drawingFile || !relsFile) continue;
 
-      const anchors = doc.querySelectorAll("twoCellAnchor, oneCellAnchor");
-      const imagePromises = [];
+        const [drawingXml, relsXml] = await Promise.all([
+          drawingFile.async("string"),
+          relsFile.async("string")
+        ]);
 
-      for (let i = 0; i < anchors.length; i++) {
-        const anchor = anchors[i];
-        const fromRow = anchor.querySelector("from > row");
-        const fromCol = anchor.querySelector("from > col");
-        const blip = anchor.querySelector("blip");
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(drawingXml, "text/xml");
+        const relsDoc = parser.parseFromString(relsXml, "text/xml");
 
-        if (fromRow && blip) {
-          const colIndex = fromCol ? parseInt(fromCol.textContent, 10) : 0;
-          if (colIndex === 0) {
-            const rowIndex = parseInt(fromRow.textContent, 10);
-            const embedId = blip.getAttribute("r:embed") || blip.getAttribute("r:link");
-            const imageName = relMap[embedId];
+        const relMap = {};
+        const relationshipNodes = relsDoc.getElementsByTagName("Relationship");
+        for (let i = 0; i < relationshipNodes.length; i++) {
+          const id = relationshipNodes[i].getAttribute("Id");
+          const target = relationshipNodes[i].getAttribute("Target");
+          if (id && target) {
+            relMap[id] = target.replace("../media/", "");
+          }
+        }
 
-            if (imageName) {
-              const imageFile = zip.file(`xl/media/${imageName}`);
-              if (imageFile) {
-                imagePromises.push(
-                  imageFile.async("base64").then(base64 => {
-                    const ext = imageName.split('.').pop().toLowerCase();
-                    const mime = (ext === 'png') ? 'image/png' : 'image/jpeg';
-                    rowImageMap[rowIndex] = `data:${mime};base64,${base64}`;
-                  })
-                );
+        const anchors = doc.querySelectorAll("twoCellAnchor, oneCellAnchor");
+
+        for (let i = 0; i < anchors.length; i++) {
+          const anchor = anchors[i];
+          const fromRowEl = anchor.querySelector("from > row");
+          const fromColEl = anchor.querySelector("from > col");
+          const blip = anchor.querySelector("blip");
+
+          if (fromRowEl && blip) {
+            const colIndex = fromColEl ? parseInt(fromColEl.textContent, 10) : 0;
+            if (colIndex === 0) {
+              const rowIndex = parseInt(fromRowEl.textContent, 10);
+              const embedId = blip.getAttribute("r:embed") || blip.getAttribute("r:link");
+              const imageName = relMap[embedId];
+
+              if (imageName) {
+                tasks.push({ rowIndex, imageName });
               }
             }
           }
         }
       }
 
-      await Promise.all(imagePromises);
+      const BATCH_SIZE = 15;
+      for (let i = 0; i < tasks.length; i += BATCH_SIZE) {
+        const batch = tasks.slice(i, i + BATCH_SIZE);
+        await Promise.all(batch.map(async (task) => {
+          const imgZipEntry = zip.file(`xl/media/${task.imageName}`);
+          if (imgZipEntry) {
+            const b64 = await imgZipEntry.async("base64");
+            const ext = task.imageName.split('.').pop().toLowerCase();
+            const mime = (ext === 'png') ? 'image/png' : 'image/jpeg';
+            rowImageMap[task.rowIndex] = `data:${mime};base64,${b64}`;
+          }
+        }));
+        if (onProgress) {
+          onProgress(Math.min(i + BATCH_SIZE, tasks.length), tasks.length);
+        }
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
+
       return rowImageMap;
     }
 
@@ -1148,82 +1295,95 @@
       if (!file) return;
 
       const statusDiv = document.getElementById('importStatus');
-      statusDiv.innerText = "⏳ Extraction des photos et données...";
+      statusDiv.innerText = "⏳ Analyse du fichier Excel...";
 
       try {
-        const imageMap = await extractImagesFromExcel(file);
+        const imageMap = await extractImagesFromExcelChunked(file, (done, total) => {
+          statusDiv.innerText = `⏳ Extraction des images : ${done} / ${total}...`;
+        });
+
+        statusDiv.innerText = "⏳ Lecture des données produits...";
+
         const reader = new FileReader();
 
         reader.onload = function(evt) {
-          const data = new Uint8Array(evt.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          
-          const targetSheetName = workbook.SheetNames.find(n => n.toLowerCase().includes('données') || n.toLowerCase().includes('donnees')) || workbook.SheetNames[0];
-          const sheet = workbook.Sheets[targetSheetName];
-          const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+          try {
+            const data = new Uint8Array(evt.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            const targetSheetName = workbook.SheetNames.find(n => n.toLowerCase().includes('données') || n.toLowerCase().includes('donnees')) || workbook.SheetNames[0];
+            const sheet = workbook.Sheets[targetSheetName];
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-          if (rows.length < 2) return statusDiv.innerText = "❌ Fichier Excel vide.";
+            if (!rows || rows.length < 2) {
+              statusDiv.innerText = "❌ Fichier Excel vide.";
+              return;
+            }
 
-          const headers = rows[0].map(h => String(h || '').trim().toLowerCase());
-          
-          function getColIndex(names) {
-            return headers.findIndex(h => names.some(n => h.includes(n)));
+            const headers = rows[0].map(h => String(h || '').trim().toLowerCase());
+            
+            function getColIndex(names) {
+              return headers.findIndex(h => names.some(n => h.includes(n)));
+            }
+
+            const idxDesc = getColIndex(['description', 'desc', 'libelle', 'libellé', 'produit', 'nom']);
+            const idxEan = getColIndex(['ean', 'code-barres', 'code barre', 'code ean']);
+            const idxIfls = getColIndex(['ifls', 'code ifls']);
+            const idxPcb = getColIndex(['pcb', 'colisage']);
+            const idxAssort = getColIndex(['assort', 'assortiment']);
+            const idxBrand = getColIndex(['type marque', 'marque', 'type de marque', 'mdd/mn']);
+            const idxCond = getColIndex(['conditionnement', 'cond', 'emb']);
+            const idxFam = getColIndex(['famille', 'fam', 'rayon']);
+
+            let extracted = [];
+            const nowIso = new Date().toISOString();
+
+            for (let r = 1; r < rows.length; r++) {
+              const row = rows[r];
+              if (!row || row.length === 0) continue;
+
+              const descriptionText = idxDesc !== -1 && row[idxDesc] ? String(row[idxDesc]).trim() : '';
+              const rawEan = idxEan !== -1 && row[idxEan] ? String(row[idxEan]).trim() : '';
+              const ean = normalizeEAN(rawEan);
+
+              if (!descriptionText && !ean) continue;
+
+              let assortVal = idxAssort !== -1 && row[idxAssort] ? String(row[idxAssort]).trim().toUpperCase() : 'NONE';
+              if (!assortVal || assortVal === '') assortVal = 'NONE';
+
+              const brandStr = idxBrand !== -1 && row[idxBrand] ? String(row[idxBrand]).toLowerCase() : '';
+              const brandType = (brandStr.includes('national') || brandStr.includes('mn')) ? 'MN' : 'MDD';
+
+              const conditionnement = idxCond !== -1 && row[idxCond] ? String(row[idxCond]).trim() : '';
+              const family = idxFam !== -1 && row[idxFam] ? String(row[idxFam]).trim() : '';
+
+              extracted.push({
+                description: descriptionText,
+                label: descriptionText,
+                ean: ean,
+                ifls: idxIfls !== -1 && row[idxIfls] ? String(row[idxIfls]).trim() : '',
+                pcb: idxPcb !== -1 && row[idxPcb] ? row[idxPcb] : 1,
+                assortment: assortVal,
+                brandType: brandType,
+                conditionnement: conditionnement,
+                family: family,
+                image: imageMap[r] || '',
+                added_at: nowIso
+              });
+            }
+
+            state.parsedProducts = extracted;
+            statusDiv.innerText = `✅ ${extracted.length} produits et toutes leurs photos importés !`;
+          } catch (err) {
+            console.error("Erreur Excel :", err);
+            statusDiv.innerText = "❌ Erreur lors de la lecture du fichier Excel.";
           }
-
-          const idxDesc = getColIndex(['description', 'desc', 'libelle', 'libellé', 'produit', 'nom']);
-          const idxEan = getColIndex(['ean', 'code-barres', 'code barre', 'code ean']);
-          const idxIfls = getColIndex(['ifls', 'code ifls']);
-          const idxPcb = getColIndex(['pcb', 'colisage']);
-          const idxAssort = getColIndex(['assort', 'assortiment']);
-          const idxBrand = getColIndex(['type marque', 'marque', 'type de marque', 'mdd/mn']);
-          const idxCond = getColIndex(['conditionnement', 'cond', 'emb']);
-          const idxFam = getColIndex(['famille', 'fam', 'rayon']);
-
-          let extracted = [];
-          const nowIso = new Date().toISOString();
-
-          for (let r = 1; r < rows.length; r++) {
-            const row = rows[r];
-            if (!row || row.length === 0) continue;
-
-            const descriptionText = idxDesc !== -1 && row[idxDesc] ? String(row[idxDesc]).trim() : '';
-            const rawEan = idxEan !== -1 && row[idxEan] ? String(row[idxEan]).trim() : '';
-            const ean = normalizeEAN(rawEan);
-
-            if (!descriptionText && !ean) continue;
-
-            let assortVal = idxAssort !== -1 && row[idxAssort] ? String(row[idxAssort]).trim().toUpperCase() : 'NONE';
-            if (!assortVal || assortVal === '') assortVal = 'NONE';
-
-            const brandStr = idxBrand !== -1 && row[idxBrand] ? String(row[idxBrand]).toLowerCase() : '';
-            const brandType = (brandStr.includes('national') || brandStr.includes('mn')) ? 'MN' : 'MDD';
-
-            const conditionnement = idxCond !== -1 && row[idxCond] ? String(row[idxCond]).trim() : '';
-            const family = idxFam !== -1 && row[idxFam] ? String(row[idxFam]).trim() : '';
-
-            extracted.push({
-              description: descriptionText,
-              label: descriptionText,
-              ean: ean,
-              ifls: idxIfls !== -1 && row[idxIfls] ? String(row[idxIfls]).trim() : '',
-              pcb: idxPcb !== -1 && row[idxPcb] ? row[idxPcb] : 1,
-              assortment: assortVal,
-              brandType: brandType,
-              conditionnement: conditionnement,
-              family: family,
-              image: imageMap[r] || '',
-              added_at: nowIso
-            });
-          }
-
-          state.parsedProducts = extracted;
-          statusDiv.innerText = `✅ ${extracted.length} fiches produits importées avec succès !`;
         };
 
         reader.readAsArrayBuffer(file);
       } catch (err) {
-        console.error("Erreur Excel :", err);
-        statusDiv.innerText = "❌ Erreur lors de la lecture du fichier Excel.";
+        console.error("Erreur globale :", err);
+        statusDiv.innerText = "❌ Erreur d'importation des images.";
       }
     });
 
@@ -1326,6 +1486,7 @@
 
     function closeModal() { document.getElementById('bookModal').classList.remove('active'); }
 
+    // SAUVEGARDE SECURISEE SUPABASE (FALLBACK SI COLONNES INEXISTANTES)
     async function handleFormSubmit(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('saveSubmitBtn');
@@ -1349,9 +1510,8 @@
         return alert("Sélectionnez au moins un secteur et un format."); 
       }
 
-      const nowIso = new Date().toISOString();
-
-      const payload = { 
+      // Payload principal avec tous les champs
+      let payload = { 
         title, 
         image, 
         description, 
@@ -1359,17 +1519,10 @@
         formats, 
         cover_fit,
         cover_pos,
-        products: state.parsedProducts,
-        updated_at: nowIso
+        products: state.parsedProducts
       };
 
-      if (!id) {
-        payload.created_at = nowIso;
-      }
-
-      if (drive_pdf) {
-        payload.drive_pdf = drive_pdf;
-      }
+      if (drive_pdf) payload.drive_pdf = drive_pdf;
 
       let res = null;
       if (id) {
@@ -1378,11 +1531,16 @@
         res = await supabaseClient.from('books').insert([payload]);
       }
 
+      // Si erreur de schéma Supabase (colonne manquante), on essaie avec un payload épuré
       if (res.error) {
-        delete payload.cover_fit;
-        delete payload.cover_pos;
-        delete payload.drive_pdf;
-
+        payload = {
+          title,
+          image,
+          description,
+          sectors,
+          formats,
+          products: state.parsedProducts
+        };
         if (id) {
           res = await supabaseClient.from('books').update(payload).eq('id', id);
         } else {
