@@ -21,6 +21,8 @@
       --text-muted: #6C757D;
       --border-color: #E9ECEF;
       --danger-color: #D90429;
+      --warning-color: #E67E22;
+      --info-color: #8E44AD;
       --radius: 12px;
       --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     }
@@ -53,6 +55,31 @@
     
     .filter-group { display: flex; align-items: center; gap: 8px; position: relative; }
     .filter-group label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+
+    /* PASTILLES DE STATUT */
+    .status-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: white;
+    }
+    .status-badge.new { background-color: var(--danger-color); }
+    .status-badge.updated { background-color: var(--warning-color); }
+    .status-badge.cond { background-color: var(--info-color); margin-bottom: 6px; }
+
+    .book-badges-container {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 3;
+    }
 
     /* MENU DÉROULANT ASSORTIMENT */
     .dropdown-assort { position: relative; display: inline-block; }
@@ -126,7 +153,23 @@
     .drive-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--primary-color); color: white; text-decoration: none; padding: 10px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; text-align: center; transition: background 0.2s; cursor: pointer; border: none; }
     .drive-link:hover { background: var(--primary-hover); }
     
-    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.25rem; margin-top: 1.5rem; }
+    /* BANDEAU FIN DE FAMILLE PRODUIT */
+    .family-banner {
+      grid-column: 1 / -1;
+      background: var(--primary-color);
+      color: white;
+      padding: 6px 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 6px;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.25rem; margin-top: 0.5rem; }
     .product-card { background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color); padding: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; box-shadow: var(--shadow); position: relative; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
     .product-card:hover { transform: scale(1.02); box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
     
@@ -134,11 +177,18 @@
     .badge-mdd { background-color: var(--accent-color); }
     .badge-mn { background-color: var(--danger-color); }
 
+    .product-new-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 2;
+    }
+
     .product-img { width: 100%; height: 150px; object-fit: contain; margin-bottom: 8px; margin-top: 12px; border-radius: 6px; background: #fff; border: 1px solid var(--border-color); }
     .product-title { font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px; line-height: 1.3; height: 2.6em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
     .product-details { display: flex; gap: 8px; justify-content: center; align-items: center; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; flex-wrap: wrap; }
     .product-details span { font-weight: 700; color: var(--text-main); }
-    .product-badge { background: #E8F5E9; color: var(--primary-color); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; }
+    .product-badge { background: #E8F5E9; color: var(--primary-color); padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-bottom: 6px; }
     .barcode-svg { width: 100%; height: 45px; }
 
     .admin-actions { display: none; gap: 6px; position: absolute; top: 10px; right: 10px; z-index: 2; }
@@ -149,7 +199,7 @@
     .delete-product-btn { display: none; position: absolute; top: 8px; right: 8px; background: var(--danger-color); color: white; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 0.85rem; line-height: 26px; z-index: 5; text-align: center; }
     .admin-mode .delete-product-btn { display: block; }
 
-    /* MODALE DE ZOOM PRODUIT (SCAN MOBILE) */
+    /* MODALE ZOOM PRODUIT */
     .zoom-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; padding: 1.5rem; }
     .zoom-modal.active { display: flex; }
     .zoom-card { background: white; border-radius: 16px; padding: 1.5rem; max-width: 450px; width: 100%; text-align: center; position: relative; box-shadow: 0 10px 40px rgba(0,0,0,0.4); }
@@ -208,6 +258,8 @@
       }
       .print-header-banner h2 { font-size: 1.2rem; font-weight: bold; margin: 0; color: white; }
       .print-header-banner span { font-size: 0.85rem; opacity: 0.9; }
+
+      .family-banner { font-size: 0.8rem !important; padding: 4px 8px !important; margin-top: 8px !important; margin-bottom: 4px !important; }
 
       .product-grid { 
         display: grid !important; 
@@ -315,7 +367,7 @@
       </div>
 
       <div class="search-container no-print">
-        <input type="text" id="productSearchInput" class="search-input" placeholder="🔍 Rechercher par description, EAN ou IFLS..." oninput="renderProducts()">
+        <input type="text" id="productSearchInput" class="search-input" placeholder="🔍 Rechercher par description, EAN, IFLS ou Famille..." oninput="renderProducts()">
         
         <div class="filter-group">
           <label>Marque :</label>
@@ -492,6 +544,14 @@
           <input type="number" id="prodPcb" value="1" min="1">
         </div>
         <div class="form-group">
+          <label for="prodConditionnement">Conditionnement</label>
+          <input type="text" id="prodConditionnement" placeholder="ex: Pack de 6, 1/2 PALETTE">
+        </div>
+        <div class="form-group">
+          <label for="prodFamily">Famille Produit</label>
+          <input type="text" id="prodFamily" placeholder="ex: 212 - CONFISERIE DE SUCRE">
+        </div>
+        <div class="form-group">
           <label for="prodAssort">Assortiment</label>
           <select id="prodAssort">
             <option value="NONE">Sans niveau</option>
@@ -506,7 +566,7 @@
           <label for="prodBrand">Type Marque</label>
           <select id="prodBrand">
             <option value="MDD">MDD</option>
-            <option value="MN">MN</option>
+            <option value="MN">National (MN)</option>
           </select>
         </div>
         <div class="form-group">
@@ -535,6 +595,26 @@
 
     let state = { sector: null, format: null, isAdmin: false, viewMode: 'grid', books: [], currentBook: null, parsedProducts: [] };
     const LABELS = { NORD: "St-Vulbas, Bagé, Mâcon (Nord)", SALON: "Salon", '63': "63 - Rural", '70': "70 - Urbain" };
+
+    // VÉRIFICATION DE LA MOINS D'UNE SEMAINE (7 JOURS)
+    function isWithinOneWeek(dateString) {
+      if (!dateString) return false;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return false;
+      const now = new Date();
+      const diffInDays = (now - date) / (1000 * 60 * 60 * 24);
+      return diffInDays >= 0 && diffInDays <= 7;
+    }
+
+    // NORMALISATION EAN À 13 CHIFFRES (AVEC '0' DEVANT SI INCOMPLET)
+    function normalizeEAN(ean) {
+      if (!ean) return '';
+      let clean = String(ean).trim().replace(/\D/g, '');
+      if (clean.length > 0 && clean.length < 13) {
+        clean = clean.padStart(13, '0');
+      }
+      return clean;
+    }
 
     async function fetchBooks() {
       try {
@@ -635,7 +715,20 @@
         const fitStyle = book.cover_fit || 'cover';
         const posStyle = book.cover_pos || 'center';
 
+        // Pastilles temporalité du book
+        const isNewBook = isWithinOneWeek(book.created_at);
+        const isUpdatedBook = !isNewBook && isWithinOneWeek(book.updated_at);
+
+        let badgesHTML = '';
+        if (isNewBook) {
+          badgesHTML += `<span class="status-badge new">Nouveau</span>`;
+        }
+        if (isUpdatedBook) {
+          badgesHTML += `<span class="status-badge updated">Mis à jour</span>`;
+        }
+
         card.innerHTML = `
+          ${badgesHTML ? `<div class="book-badges-container">${badgesHTML}</div>` : ''}
           ${state.isAdmin ? `<div class="admin-actions"><button class="btn-action" onclick="editBook('${book.id}')">Éditer</button><button class="btn-action delete" onclick="deleteBook('${book.id}')">Supprimer</button></div>` : ''}
           <img src="${book.image || 'https://via.placeholder.com/600x400?text=Carrefour+Proximité'}" alt="${book.title}" class="book-cover" style="object-fit: ${fitStyle}; object-position: ${posStyle};" onerror="this.src='https://via.placeholder.com/600x400?text=Carrefour+Proximité'">
           <div class="book-content">
@@ -740,18 +833,22 @@
       
       const iflsText = product.ifls ? ` | IFLS : <span>${product.ifls}</span>` : '';
       const assortText = (product.assortment && product.assortment !== 'NONE') ? product.assortment : 'Sans niveau';
+      const condText = (product.conditionnement && product.conditionnement !== '-') ? ` | Cond : <span>${product.conditionnement}</span>` : '';
 
       document.getElementById('zoomDetails').innerHTML = `
         <div>PCB : <span>${product.pcb || 1}</span></div>
         ${iflsText}
+        ${condText}
         <div style="margin-left: 10px;">Assortiment : <span>${assortText}</span></div>
       `;
 
-      if (product.ean) {
+      const normalizedEAN = normalizeEAN(product.ean);
+
+      if (normalizedEAN) {
         try {
-          JsBarcode("#zoomBarcode", String(product.ean), { format: "EAN13", height: 75, displayValue: true, fontSize: 16 });
+          JsBarcode("#zoomBarcode", normalizedEAN, { format: "EAN13", height: 75, displayValue: true, fontSize: 16 });
         } catch(e) {
-          JsBarcode("#zoomBarcode", String(product.ean), { format: "CODE128", height: 75, displayValue: true, fontSize: 16 });
+          JsBarcode("#zoomBarcode", normalizedEAN, { format: "CODE128", height: 75, displayValue: true, fontSize: 16 });
         }
       } else {
         document.getElementById('zoomBarcode').innerHTML = '';
@@ -779,8 +876,10 @@
       const products = state.currentBook.products.filter((p, index) => {
         p._originalIndex = index;
         const labelText = p.description || p.label || p.title || '';
+        const familyText = p.family || '';
         const matchQuery = !query || 
           labelText.toLowerCase().includes(query) || 
+          familyText.toLowerCase().includes(query) || 
           (p.ean && String(p.ean).includes(query)) ||
           (p.ifls && String(p.ifls).includes(query));
         
@@ -800,45 +899,75 @@
         return;
       }
 
-      products.forEach((p, idx) => {
-        const card = document.createElement('div');
-        card.className = 'product-card';
-        
-        // Ouvert de la modale zoom lors d'un clic
-        card.onclick = (e) => {
-          if (e.target.classList.contains('delete-product-btn')) return;
-          openZoomModal(p);
-        };
+      // REGROUPEMENT DES PRODUITS PAR FAMILLE
+      const groupedByFamily = {};
+      products.forEach(p => {
+        const fam = p.family && p.family.trim() ? p.family.trim().toUpperCase() : 'AUTRES / DIVERS';
+        if (!groupedByFamily[fam]) groupedByFamily[fam] = [];
+        groupedByFamily[fam].push(p);
+      });
 
-        const barcodeId = `barcode-${idx}`;
+      let globalIdx = 0;
 
-        const brandText = (p.brandType || p.brand || 'MDD').toUpperCase();
-        const badgeClass = brandText === 'MN' ? 'badge-mn' : 'badge-mdd';
-        const displayTitle = p.description || p.label || `Produit ${p.ean || idx + 1}`;
-        const iflsDisplay = p.ifls ? `| IFLS : <span>${p.ifls}</span>` : '';
-        const assortText = (p.assortment && p.assortment !== 'NONE') ? p.assortment : 'Sans niveau';
+      Object.keys(groupedByFamily).sort().forEach(family => {
+        // BANDEAU VERT DE FAMILLE
+        const familyBanner = document.createElement('div');
+        familyBanner.className = 'family-banner';
+        familyBanner.innerHTML = `📁 Famille : ${family}`;
+        container.appendChild(familyBanner);
 
-        card.innerHTML = `
-          <button class="delete-product-btn" onclick="removeProductFromCurrentBook(${p._originalIndex})" title="Supprimer ce produit">✕</button>
-          <span class="brand-badge ${badgeClass}">${brandText}</span>
-          <img src="${p.image || 'https://via.placeholder.com/150?text=Photo'}" class="product-img" alt="${displayTitle}" onerror="this.src='https://via.placeholder.com/150?text=Photo'">
-          <div class="product-title">${displayTitle}</div>
-          <div class="product-details">
-            <div>PCB : <span>${p.pcb || 1}</span></div>
-            ${iflsDisplay}
-          </div>
-          <div class="product-badge">Assortiment : ${assortText}</div>
-          <svg id="${barcodeId}" class="barcode-svg"></svg>
-        `;
-        container.appendChild(card);
+        groupedByFamily[family].forEach(p => {
+          globalIdx++;
+          const card = document.createElement('div');
+          card.className = 'product-card';
+          
+          card.onclick = (e) => {
+            if (e.target.classList.contains('delete-product-btn')) return;
+            openZoomModal(p);
+          };
 
-        if (p.ean) {
-          try {
-            JsBarcode(`#${barcodeId}`, String(p.ean), { format: "EAN13", height: 35, displayValue: true, fontSize: 11 });
-          } catch(e) {
-            JsBarcode(`#${barcodeId}`, String(p.ean), { format: "CODE128", height: 35, displayValue: true, fontSize: 11 });
+          const barcodeId = `barcode-${globalIdx}`;
+
+          const brandText = (p.brandType || p.brand || 'MDD').toUpperCase();
+          const badgeClass = brandText === 'MN' ? 'badge-mn' : 'badge-mdd';
+          const displayTitle = p.description || p.label || `Produit ${p.ean || globalIdx}`;
+          const iflsDisplay = p.ifls ? `| IFLS : <span>${p.ifls}</span>` : '';
+          const assortText = (p.assortment && p.assortment !== 'NONE') ? p.assortment : 'Sans niveau';
+
+          // Pastille produit Nouveau (1 semaine)
+          const isNewProduct = isWithinOneWeek(p.added_at);
+          const newBadgeHTML = isNewProduct ? `<span class="status-badge new product-new-badge">Nouveau</span>` : '';
+          
+          // Pastille Conditionnement
+          const hasCond = p.conditionnement && p.conditionnement.trim() !== '' && p.conditionnement.trim() !== '-';
+          const condBadgeHTML = hasCond ? `<div class="status-badge cond">${p.conditionnement.trim()}</div>` : '';
+
+          card.innerHTML = `
+            <button class="delete-product-btn" onclick="removeProductFromCurrentBook(${p._originalIndex})" title="Supprimer ce produit">✕</button>
+            <span class="brand-badge ${badgeClass}">${brandText}</span>
+            ${newBadgeHTML}
+            <img src="${p.image || 'https://via.placeholder.com/150?text=Photo'}" class="product-img" alt="${displayTitle}" onerror="this.src='https://via.placeholder.com/150?text=Photo'">
+            <div class="product-title">${displayTitle}</div>
+            <div class="product-details">
+              <div>PCB : <span>${p.pcb || 1}</span></div>
+              ${iflsDisplay}
+            </div>
+            ${condBadgeHTML}
+            <div class="product-badge">Assortiment : ${assortText}</div>
+            <svg id="${barcodeId}" class="barcode-svg"></svg>
+          `;
+          container.appendChild(card);
+
+          const normalizedEAN = normalizeEAN(p.ean);
+
+          if (normalizedEAN) {
+            try {
+              JsBarcode(`#${barcodeId}`, normalizedEAN, { format: "EAN13", height: 35, displayValue: true, fontSize: 11 });
+            } catch(e) {
+              JsBarcode(`#${barcodeId}`, normalizedEAN, { format: "CODE128", height: 35, displayValue: true, fontSize: 11 });
+            }
           }
-        }
+        });
       });
     }
 
@@ -855,9 +984,14 @@
       saveBtn.disabled = true;
       saveBtn.textContent = "Sauvegarde...";
 
+      const nowIso = new Date().toISOString();
+
       const { error } = await supabaseClient
         .from('books')
-        .update({ products: state.currentBook.products })
+        .update({ 
+          products: state.currentBook.products,
+          updated_at: nowIso
+        })
         .eq('id', state.currentBook.id);
 
       saveBtn.disabled = false;
@@ -905,14 +1039,28 @@
     function handleProductSubmit(e) {
       e.preventDefault();
       const desc = document.getElementById('prodDesc').value.trim();
-      const ean = document.getElementById('prodEan').value.trim();
+      const ean = normalizeEAN(document.getElementById('prodEan').value);
       const ifls = document.getElementById('prodIfls').value.trim();
       const pcb = document.getElementById('prodPcb').value || 1;
+      const conditionnement = document.getElementById('prodConditionnement').value.trim();
+      const family = document.getElementById('prodFamily').value.trim();
       const assortment = document.getElementById('prodAssort').value;
       const brandType = document.getElementById('prodBrand').value;
       const image = document.getElementById('prodImageData').value || '';
 
-      const newProd = { description: desc, label: desc, ean, ifls, pcb, assortment, brandType, image };
+      const newProd = { 
+        description: desc, 
+        label: desc, 
+        ean, 
+        ifls, 
+        pcb, 
+        conditionnement,
+        family,
+        assortment, 
+        brandType, 
+        image,
+        added_at: new Date().toISOString()
+      };
 
       if (!state.currentBook.products) state.currentBook.products = [];
       state.currentBook.products.unshift(newProd);
@@ -995,6 +1143,7 @@
       return rowImageMap;
     }
 
+    // EXTRACTION DU FEUILLET "Données" S'IL EXISTE, SINON LE 1ER FEUILLET
     document.getElementById('excelFile').addEventListener('change', async function(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1009,7 +1158,9 @@
         reader.onload = function(evt) {
           const data = new Uint8Array(evt.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
-          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          
+          const targetSheetName = workbook.SheetNames.find(n => n.toLowerCase().includes('données') || n.toLowerCase().includes('donnees')) || workbook.SheetNames[0];
+          const sheet = workbook.Sheets[targetSheetName];
           const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
           if (rows.length < 2) return statusDiv.innerText = "❌ Fichier Excel vide.";
@@ -1021,25 +1172,36 @@
           }
 
           const idxDesc = getColIndex(['description', 'desc', 'libelle', 'libellé', 'produit', 'nom']);
-          const idxEan = getColIndex(['ean', 'code-barres', 'code barre']);
+          const idxEan = getColIndex(['ean', 'code-barres', 'code barre', 'code ean']);
           const idxIfls = getColIndex(['ifls', 'code ifls']);
           const idxPcb = getColIndex(['pcb', 'colisage']);
-          const idxAssort = getColIndex(['assortiment', 'assort']);
-          const idxBrand = getColIndex(['type marque', 'marque', 'type', 'mdd']);
+          const idxAssort = getColIndex(['assort', 'assortiment']);
+          const idxBrand = getColIndex(['type marque', 'marque', 'type de marque', 'mdd/mn']);
+          const idxCond = getColIndex(['conditionnement', 'cond', 'emb']);
+          const idxFam = getColIndex(['famille', 'fam', 'rayon']);
 
           let extracted = [];
+          const nowIso = new Date().toISOString();
 
           for (let r = 1; r < rows.length; r++) {
             const row = rows[r];
             if (!row || row.length === 0) continue;
 
             const descriptionText = idxDesc !== -1 && row[idxDesc] ? String(row[idxDesc]).trim() : '';
-            const ean = idxEan !== -1 && row[idxEan] ? String(row[idxEan]).trim() : '';
+            const rawEan = idxEan !== -1 && row[idxEan] ? String(row[idxEan]).trim() : '';
+            const ean = normalizeEAN(rawEan);
 
             if (!descriptionText && !ean) continue;
 
             let assortVal = idxAssort !== -1 && row[idxAssort] ? String(row[idxAssort]).trim().toUpperCase() : 'NONE';
             if (!assortVal || assortVal === '') assortVal = 'NONE';
+
+            // DÉTECTION MN (SI NATIONALE OU MN EST ÉCRIT) VS MDD
+            const brandStr = idxBrand !== -1 && row[idxBrand] ? String(row[idxBrand]).toLowerCase() : '';
+            const brandType = (brandStr.includes('national') || brandStr.includes('mn')) ? 'MN' : 'MDD';
+
+            const conditionnement = idxCond !== -1 && row[idxCond] ? String(row[idxCond]).trim() : '';
+            const family = idxFam !== -1 && row[idxFam] ? String(row[idxFam]).trim() : '';
 
             extracted.push({
               description: descriptionText,
@@ -1048,8 +1210,11 @@
               ifls: idxIfls !== -1 && row[idxIfls] ? String(row[idxIfls]).trim() : '',
               pcb: idxPcb !== -1 && row[idxPcb] ? row[idxPcb] : 1,
               assortment: assortVal,
-              brandType: idxBrand !== -1 && String(row[idxBrand]).toUpperCase().includes('MN') ? 'MN' : 'MDD',
-              image: imageMap[r] || ''
+              brandType: brandType,
+              conditionnement: conditionnement,
+              family: family,
+              image: imageMap[r] || '',
+              added_at: nowIso
             });
           }
 
@@ -1057,7 +1222,7 @@
           statusDiv.innerText = `✅ ${extracted.length} fiches produits importées avec succès !`;
         };
 
-        reader.readAsArrayBuffer(file);
+        reader.readAsBuffer ? reader.readAsBuffer(file) : reader.readAsArrayBuffer(file);
       } catch (err) {
         console.error("Erreur Excel :", err);
         statusDiv.innerText = "❌ Erreur lors de la lecture du fichier Excel.";
@@ -1186,6 +1351,8 @@
         return alert("Sélectionnez au moins un secteur et un format."); 
       }
 
+      const nowIso = new Date().toISOString();
+
       const payload = { 
         title, 
         image, 
@@ -1194,8 +1361,13 @@
         formats, 
         cover_fit,
         cover_pos,
-        products: state.parsedProducts 
+        products: state.parsedProducts,
+        updated_at: nowIso
       };
+
+      if (!id) {
+        payload.created_at = nowIso;
+      }
 
       if (drive_pdf) {
         payload.drive_pdf = drive_pdf;
