@@ -596,7 +596,6 @@
     let state = { sector: null, format: null, isAdmin: false, viewMode: 'grid', books: [], currentBook: null, parsedProducts: [] };
     const LABELS = { NORD: "St-Vulbas, Bagé, Mâcon (Nord)", SALON: "Salon", '63': "63 - Rural", '70': "70 - Urbain" };
 
-    // VÉRIFICATION DE LA MOINS D'UNE SEMAINE (7 JOURS)
     function isWithinOneWeek(dateString) {
       if (!dateString) return false;
       const date = new Date(dateString);
@@ -606,7 +605,6 @@
       return diffInDays >= 0 && diffInDays <= 7;
     }
 
-    // NORMALISATION EAN À 13 CHIFFRES (AVEC '0' DEVANT SI INCOMPLET)
     function normalizeEAN(ean) {
       if (!ean) return '';
       let clean = String(ean).trim().replace(/\D/g, '');
@@ -715,7 +713,6 @@
         const fitStyle = book.cover_fit || 'cover';
         const posStyle = book.cover_pos || 'center';
 
-        // Pastilles temporalité du book
         const isNewBook = isWithinOneWeek(book.created_at);
         const isUpdatedBook = !isNewBook && isWithinOneWeek(book.updated_at);
 
@@ -899,7 +896,6 @@
         return;
       }
 
-      // REGROUPEMENT DES PRODUITS PAR FAMILLE
       const groupedByFamily = {};
       products.forEach(p => {
         const fam = p.family && p.family.trim() ? p.family.trim().toUpperCase() : 'AUTRES / DIVERS';
@@ -910,7 +906,6 @@
       let globalIdx = 0;
 
       Object.keys(groupedByFamily).sort().forEach(family => {
-        // BANDEAU VERT DE FAMILLE
         const familyBanner = document.createElement('div');
         familyBanner.className = 'family-banner';
         familyBanner.innerHTML = `📁 Famille : ${family}`;
@@ -934,11 +929,9 @@
           const iflsDisplay = p.ifls ? `| IFLS : <span>${p.ifls}</span>` : '';
           const assortText = (p.assortment && p.assortment !== 'NONE') ? p.assortment : 'Sans niveau';
 
-          // Pastille produit Nouveau (1 semaine)
           const isNewProduct = isWithinOneWeek(p.added_at);
           const newBadgeHTML = isNewProduct ? `<span class="status-badge new product-new-badge">Nouveau</span>` : '';
           
-          // Pastille Conditionnement
           const hasCond = p.conditionnement && p.conditionnement.trim() !== '' && p.conditionnement.trim() !== '-';
           const condBadgeHTML = hasCond ? `<div class="status-badge cond">${p.conditionnement.trim()}</div>` : '';
 
@@ -1087,6 +1080,7 @@
       document.getElementById('importStatus').innerText = '';
     }
 
+    // EXTRACTION D'IMAGES ASYNCHRONE ET PARALLÉLISÉE ULTRA RAPIDE
     async function extractImagesFromExcel(file) {
       const zip = await JSZip.loadAsync(file);
       const rowImageMap = {};
@@ -1094,14 +1088,14 @@
       let drawingXmlStr = null, drawingRelsXmlStr = null;
 
       zip.forEach((relativePath, zipEntry) => {
-        if (relativePath.match(/xl\/drawings\/drawing\d+\.xml$/i)) drawingXmlStr = zipEntry;
-        if (relativePath.match(/xl\/drawings\/_rels\/drawing\d+\.xml\.rels$/i)) drawingRelsXmlStr = zipEntry;
+        if (relativePath.match(/xl\/drawings\/drawing\d+\.xml$/i)) drawingXmlStr = relativePath;
+        if (relativePath.match(/xl\/drawings\/_rels\/drawing\d+\.xml\.rels$/i)) drawingRelsXmlStr = relativePath;
       });
 
       if (!drawingXmlStr || !drawingRelsXmlStr) return rowImageMap;
 
-      const drawingXml = await drawingXmlStr.async("string");
-      const drawingRelsXml = await drawingRelsXmlStr.async("string");
+      const drawingXml = await zip.file(drawingXmlStr).async("string");
+      const drawingRelsXml = await zip.file(drawingRelsXmlStr).async("string");
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(drawingXml, "application/xml");
@@ -1114,6 +1108,8 @@
       }
 
       const anchors = doc.querySelectorAll("twoCellAnchor, oneCellAnchor");
+      const imagePromises = [];
+
       for (let i = 0; i < anchors.length; i++) {
         const anchor = anchors[i];
         const fromRow = anchor.querySelector("from > row");
@@ -1122,7 +1118,6 @@
 
         if (fromRow && blip) {
           const colIndex = fromCol ? parseInt(fromCol.textContent, 10) : 0;
-          
           if (colIndex === 0) {
             const rowIndex = parseInt(fromRow.textContent, 10);
             const embedId = blip.getAttribute("r:embed") || blip.getAttribute("r:link");
@@ -1131,19 +1126,23 @@
             if (imageName) {
               const imageFile = zip.file(`xl/media/${imageName}`);
               if (imageFile) {
-                const base64 = await imageFile.async("base64");
-                const ext = imageName.split('.').pop().toLowerCase();
-                const mime = (ext === 'png') ? 'image/png' : 'image/jpeg';
-                rowImageMap[rowIndex] = `data:${mime};base64,${base64}`;
+                imagePromises.push(
+                  imageFile.async("base64").then(base64 => {
+                    const ext = imageName.split('.').pop().toLowerCase();
+                    const mime = (ext === 'png') ? 'image/png' : 'image/jpeg';
+                    rowImageMap[rowIndex] = `data:${mime};base64,${base64}`;
+                  })
+                );
               }
             }
           }
         }
       }
+
+      await Promise.all(imagePromises);
       return rowImageMap;
     }
 
-    // EXTRACTION DU FEUILLET "Données" S'IL EXISTE, SINON LE 1ER FEUILLET
     document.getElementById('excelFile').addEventListener('change', async function(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1196,7 +1195,6 @@
             let assortVal = idxAssort !== -1 && row[idxAssort] ? String(row[idxAssort]).trim().toUpperCase() : 'NONE';
             if (!assortVal || assortVal === '') assortVal = 'NONE';
 
-            // DÉTECTION MN (SI NATIONALE OU MN EST ÉCRIT) VS MDD
             const brandStr = idxBrand !== -1 && row[idxBrand] ? String(row[idxBrand]).toLowerCase() : '';
             const brandType = (brandStr.includes('national') || brandStr.includes('mn')) ? 'MN' : 'MDD';
 
@@ -1222,7 +1220,7 @@
           statusDiv.innerText = `✅ ${extracted.length} fiches produits importées avec succès !`;
         };
 
-        reader.readAsBuffer ? reader.readAsBuffer(file) : reader.readAsArrayBuffer(file);
+        reader.readAsArrayBuffer(file);
       } catch (err) {
         console.error("Erreur Excel :", err);
         statusDiv.innerText = "❌ Erreur lors de la lecture du fichier Excel.";
